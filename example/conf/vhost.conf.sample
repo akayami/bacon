@@ -1,0 +1,23 @@
+<VirtualHost *:80>
+        ServerAdmin webmaster@localhost
+        DocumentRoot /path/to/your/htdocs
+        ServerName sample.local
+        
+        RewriteEngine on
+		RewriteCond %{REQUEST_FILENAME} !-f
+		RewriteCond %{REQUEST_FILENAME} !-d
+		RewriteRule !\.(js|ico|txt|gif|jpg|png|css)$ index.php
+
+        ErrorLog ${APACHE_LOG_DIR}/error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+        LogLevel warn
+
+        CustomLog ${APACHE_LOG_DIR}/access.log combined
+		# In production, include path should be set in vhost
+        # php_value include_path ".:/home/t_rakowski/dev/workspace/spl-lib/lib:/home/t_rakowski/dev/workspace/sample:/home/t_rakowski/dev/workspace/sample/inc:/home/t_rakowski/dev/workspace/sample/lib:/home/t_rakowski/dev/workspace/sample/conf"
+
+
+
+</VirtualHost>
