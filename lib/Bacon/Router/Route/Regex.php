@@ -31,9 +31,9 @@ class Regex extends Abstr implements Route {
 	
 	/**
 	 * (non-PHPdoc)
-	 * @see Bacon\Router.Route::isvalidate()
+	 * @see Bacon\Router.Route::isValid()
 	 */
-	public function isvalidate($request) {
+	public function isValid($request) {
 		$pieces = explode('?', $request);	
 		if(preg_match($this->regex, $pieces[0], $matches)) {
 			$this->matches = $matches;

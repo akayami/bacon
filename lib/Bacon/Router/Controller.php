@@ -39,7 +39,7 @@ class Controller extends Singleton {
 		ksort($this->routes);
 		foreach($this->routes as $routeBlock) {
 			foreach($routeBlock as /* @var $route Route */ $route) {
-				if($route->isvalidate($request)) {
+				if($route->isValid($request)) {
 					try {												
 						Request::getInstance()->setURI($route->getParams());	// Reading extracted parameters
 						$this->route = $route;

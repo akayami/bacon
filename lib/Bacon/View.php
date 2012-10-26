@@ -7,10 +7,24 @@ class View extends ArrayObject {
 	
 	protected $action;
 	
+	/**
+	 * Constructs the view with the data
+	 *
+	 * @param array $data
+	 */
+	
  	public function __construct(array $data = array()) {
  		$this->__data = $data;
  	}
 	
+ 	/**
+ 	 * Fetch the value of a key or return default
+ 	 * 
+ 	 * @param string $key
+ 	 * @param string $default
+ 	 * @throws Exception
+ 	 * @return multitype:|string
+ 	 */
  	public function get($key, $default = null) {
  		try {
  			return parent::offsetGet($key);
@@ -23,6 +37,11 @@ class View extends ArrayObject {
  		}
  	}
 	
+ 	/**
+ 	 * Renders current view
+ 	 * 
+ 	 * @throws \Exception
+ 	 */
 	public function render() {
 		ob_start();
 		if(!include($this->action.'.phtml')) {
@@ -33,6 +52,11 @@ class View extends ArrayObject {
 		echo $out;
 	}
 	
+	/**
+	 * Sets then action name. Used for switching views in controller 
+	 * 
+	 * @param string $string
+	 */
 	public function setActionName($string) {
 		$this->action = $string;
 	}

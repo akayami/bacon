@@ -16,9 +16,9 @@ class Simple extends Abstr implements Route {
 	
 	/**
 	 * (non-PHPdoc)
-	 * @see Bacon\Router.Route::isvalidate()
+	 * @see Bacon\Router.Route::isValid()
 	 */
-	public function isvalidate($request) {
+	public function isValid($request) {
 		$pieces = explode('?', $request);
 		if($pieces[0] == $this->pattern) {
 			return true;

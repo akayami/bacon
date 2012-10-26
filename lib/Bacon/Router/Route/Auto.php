@@ -24,10 +24,10 @@ class Auto extends Regex {
 	
 	/**
 	 * (non-PHPdoc)
-	 * @see Bacon\Router.Route::isvalidate()
+	 * @see Bacon\Router.Route::isValid()
 	 */
-	public function isvalidate($request) {
-		if($result = parent::isvalidate($request)) {
+	public function isValid($request) {
+		if($result = parent::isValid($request)) {
 			$this->controller = $this->matches['controller'];
 			$this->action = $this->matches['action'];
 			if(isset($this->matches['uriparams'])) {
