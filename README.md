@@ -1,5 +1,8 @@
-Bacon - Simple MVC Router
+Bacon - Good with everything !
 =========================
+
+## Simple MVC Router
+
 It's a simple PHP Router that you can use with pretty much anything to handle basic Model/View/Controller (MVC) design 
 
 ## Characteristics
