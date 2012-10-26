@@ -15,18 +15,6 @@ abstract class Abstr {
 		$this->controller = $controller;
 		$this->action = $action;
 	}
-	
-// 	/**
-// 	 * @return boolean
-// 	 */
-// 	public function handle() {		
-// 		$a = new $this->controller($this->action);
-// 		if($a->{$this->action}() !== false) {
-// 			$a->render();
-// 			return true;
-// 		}
-// 		return false;
-// 	}
 
 	public function getController() {
 		return $this->controller;
@@ -34,5 +22,9 @@ abstract class Abstr {
 	
 	public function getAction() {
 		return $this->action;
+	}
+	
+	public function validate() {
+		return false;
 	}
 }

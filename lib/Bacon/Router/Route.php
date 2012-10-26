@@ -9,7 +9,7 @@ interface Route {
 	 * 
 	 * @return boolean
 	 */
-	public function isValid($route);
+	public function isvalidate($route);
 	
 	
 	
@@ -21,4 +21,6 @@ interface Route {
 	public function getController();
 	
 	public function getAction();
+	
+	public function validate();
 }

@@ -1,6 +1,8 @@
 <?php
 namespace Bacon\Router;
 
+use Bacon\Router\Action\Controller as ActionCtrl;
+
 use Bacon\Misc\Singleton;
 use Bacon\Http\Request;
 
@@ -37,15 +39,19 @@ class Controller extends Singleton {
 		ksort($this->routes);
 		foreach($this->routes as $routeBlock) {
 			foreach($routeBlock as /* @var $route Route */ $route) {
-				if($route->isValid($request)) {
-					Request::getInstance()->setURI($route->getParams());	// Reading extracted parameters
-					$this->route = $route;
-					$this->handleRoute($this->route);
-					return true;						
+				if($route->isvalidate($request)) {
+					try {												
+						Request::getInstance()->setURI($route->getParams());	// Reading extracted parameters
+						$this->route = $route;
+						$this->handleRoute($this->route);					
+						return true;
+					} catch(\Exception $e) {
+						throw new Exception('not.found', 'Requested resource was not found.', null, $e);
+					}						
 				}
 			}
 		}
-		throw new \Exception('Requested resource not found: '.$request, 404);
+		throw new Exception('not.found', 'Requested resource was not found.');		
 	}	
 	
 	/**
@@ -54,10 +60,48 @@ class Controller extends Singleton {
 	 * @throws Exception
 	 */
 	protected function handleRoute(Route $route) {
+		$controller = $this->loadController($route);
+		$this->executeAction($route, $controller);
+		$this->render($controller);
+	}
+	
+	/**
+	 * 
+	 * @param Route $route
+	 * @throws Exception
+	 * @return ActionCtrl
+	 */
+	protected function loadController(Route $route) {
 		$cName = $route->getController();
-		$a = new $cName($route->getAction());
-		$a->{$route->getAction()}();			
-		$a->render();
+		if($route->validate() && !class_exists($cName, true)) {
+			throw new \Exception('Route resolved to an invalid controller: '.$cName);
+		}
+		return new $cName($route->getAction());		
+	}
+	
+	/**
+	 * 
+	 * @param Route $route
+	 * @param ActionCtrl $c
+	 * @throws Exception
+	 */
+	public function executeAction(Route $route, ActionCtrl $c) {
+		if($route->validate()) {
+			$rfl = new \ReflectionMethod($c, $route->getAction());
+			if(!$rfl->isPublic()) {
+				throw new \Exception('Route resolved to an invalid action:'.$route->getAction());
+			}
+		}
+		$c->{$route->getAction()}();		
+	}
+	
+	/**
+	 * Renders action
+	 * 
+	 * @param Controller $c
+	 */
+	protected function render(ActionCtrl $c) {
+		return $c->render();
 	}
 	
 	/**

@@ -1,5 +1,8 @@
 <?php
-use Example\Router\Controller;
+use Bacon\Router\Exception;
+
+//use Example\Router\Controller;
+use Bacon\Router\Controller;
 use Bacon\Router\Route\Simple;
 use Bacon\Router\Route\Regex;
 use Bacon\Router\Route\Auto;
@@ -33,12 +36,16 @@ $cont->addRoute(new Simple('/', 'Example\Front', 'standard'), 0);
 $cont->addRoute(new Regex('#^/error/(?<code>\d+)$#', 'Example\Error', 'handle'), 1000);	
 
 // A catch all routing often used in CMS/Admin sytems where consistent url stucture is used, and SEO does not matter
-$cont->addRoute(new Auto('\Bacon\Example'), 1001);										
+$cont->addRoute(new Auto('Example'), 1001);										
 
 
 try {
 	// Routing is executed.
 	$cont->route(Request::getInstance()->REQUEST_URI);
+} catch(\Bacon\Router\Exception $e) {
+	ob_end_clean(); 						// Emptying whatever might have been written into buffer
+	Request::getInstance()->error = $e;		// Attaching execption so that error controller can act on it
+	$cont->route('/error/404');	// Routing to error controller
 } catch(\Exception $e) {
 	/*
 	 * Handling catchable errors

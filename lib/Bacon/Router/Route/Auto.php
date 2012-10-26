@@ -16,14 +16,18 @@ class Auto extends Regex {
 	public function __construct($defaultControllerNamespace = '') {
 		parent::__construct('#/(?<controller>\w+)/(?<action>\w+)(?<uriparams>.*)$#', '', '');
 		$this->namespace = $defaultControllerNamespace;
+	}
+
+	public function getController() {
+		return $this->namespace.'\\'.$this->controller;
 	}	
 	
 	/**
 	 * (non-PHPdoc)
-	 * @see Bacon\Router.Route::isValid()
+	 * @see Bacon\Router.Route::isvalidate()
 	 */
-	public function isValid($request) {
-		if($result = parent::isValid($request)) {
+	public function isvalidate($request) {
+		if($result = parent::isvalidate($request)) {
 			$this->controller = $this->matches['controller'];
 			$this->action = $this->matches['action'];
 			if(isset($this->matches['uriparams'])) {
@@ -51,6 +55,10 @@ class Auto extends Regex {
 			$i++;
 		}
 		return $values;
+	}
+	
+	function validate() {
+		return true;
 	}
 	
 // 	public function handle() {
