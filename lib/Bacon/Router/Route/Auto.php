@@ -9,13 +9,15 @@ class Auto extends Regex {
 	protected $regex;
 	public $matches;
 	protected $namespace;
+	protected $defaultAction;
 	
 	/**
 	 * 
 	 */
-	public function __construct($defaultControllerNamespace = '') {
-		parent::__construct('#/(?<controller>\w+)/(?<action>\w+)(?<uriparams>.*)$#', '', '');
+	public function __construct($defaultControllerNamespace = '', $defaultAction = 'index') {
+		parent::__construct('#/(?<controller>\w+)(/(?<action>\w+))?(?<uriparams>.*)$#', '', '');
 		$this->namespace = $defaultControllerNamespace;
+		$this->defaultAction = $defaultAction;
 	}
 
 	public function getController() {
@@ -29,11 +31,11 @@ class Auto extends Regex {
 	public function isValid($request) {
 		if($result = parent::isValid($request)) {
 			$this->controller = $this->matches['controller'];
-			$this->action = $this->matches['action'];
+			$this->action = (strlen($this->matches['action']) ? $this->matches['action'] : $this->defaultAction);
 			if(isset($this->matches['uriparams'])) {
 				$this->matches = array_merge($this->matches, $this->parseURI($this->matches['uriparams']));
 			}
-		}
+		}		
 		return $result;		
 	}
 	

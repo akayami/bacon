@@ -44,8 +44,12 @@ class View extends ArrayObject {
  	 */
 	public function render() {
 		ob_start();
-		if(!include($this->action.'.phtml')) {
-			throw new \Exception('Missing view:'.$this->action.'.phtml');
+		$a = $this->action;
+		if(substr($a, 0, 1) == '/') {
+			$a = substr($a, 1);
+		} 		
+		if(!include($a.'.phtml')) {
+			throw new \Exception('Missing view:'.$a.'.phtml');
 		}
 		$out = ob_get_contents();
 		ob_end_clean();
