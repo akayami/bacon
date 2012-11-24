@@ -19,7 +19,7 @@ class Auto extends Regex {
 	}
 
 	public function getController() {
-		return $this->namespace.'\\'.$this->controller;
+		return $this->namespace.'\\'.ucfirst($this->controller);
 	}	
 	
 	/**
