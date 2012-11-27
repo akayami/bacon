@@ -33,6 +33,10 @@ class Config implements \ArrayAccess {
 		return static::$instance;
 	}
 
+	public static function isInitialized() {
+		return isset(static::$config);
+	}
+
 	private function __construct() {
 
 	}
