@@ -3,30 +3,35 @@ namespace Bacon\Router;
 
 
 interface Route {
-	
+
 	/**
-	 * 
-	 * @param string $request 
+	 *
+	 * @param string $request
 	 * @return boolean
 	 */
 	public function isValid($route);
-		
-	
+
+
 	/**
 	 * @return array
 	 */
 	public function getParams();
-	
+
 	/**
 	 * @return string
 	 */
 	public function getController();
-	
+
+	/**
+	 * @return string
+	 */
+	public function getControllerClass();
+
 	/**
 	 * @return string
 	 */
 	public function getAction();
-	
+
 	/**
 	 * @return boolean
 	 */

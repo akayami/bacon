@@ -8,19 +8,19 @@ use Bacon\Http\Request;
 
 class Controller extends Singleton {
 
-	
+
 	protected static $instance;
-	
+
 	public $routes;
-	
+
 	/**
-	 * 
+	 *
 	 * @var Route
 	 */
 	public $route;
 
 	/**
-	 * 
+	 *
 	 * @param Route $route
 	 * @param int $priority
 	 */
@@ -30,32 +30,32 @@ class Controller extends Singleton {
 		}
 		$this->routes[$priority][] = $route;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $request
 	 */
-	public function route($request) {		
+	public function route($request) {
 		ksort($this->routes);
 		foreach($this->routes as $routeBlock) {
 			foreach($routeBlock as /* @var $route Route */ $route) {
 				if($route->isValid($request)) {
-					try {												
+					try {
 						Request::getInstance()->setURI($route->getParams());	// Reading extracted parameters
 						$this->route = $route;
-						$this->handleRoute($this->route);					
+						$this->handleRoute($this->route);
 						return true;
 					} catch(\Exception $e) {
 						throw new Exception('not.found', 'Requested resource was not found.', null, $e);
-					}						
+					}
 				}
 			}
 		}
-		throw new Exception('not.found', 'Requested resource was not found.');		
-	}	
-	
+		throw new Exception('not.found', 'Requested resource was not found.');
+	}
+
 	/**
-	 * 
+	 *
 	 * @param Route $route
 	 * @throws Exception
 	 */
@@ -64,23 +64,24 @@ class Controller extends Singleton {
 		$this->executeAction($route, $controller);
 		$this->render($controller);
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param Route $route
 	 * @throws Exception
 	 * @return ActionCtrl
 	 */
 	protected function loadController(Route $route) {
-		$cName = $route->getController();
+		$cName = $route->getControllerClass();
+		error_log($cName);
 		if($route->validate() && !class_exists($cName, true)) {
 			throw new \Exception('Route resolved to an invalid controller: '.$cName);
 		}
-		return new $cName($route->getAction());		
+		return new $cName($route->getAction());
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param Route $route
 	 * @param ActionCtrl $c
 	 * @throws Exception
@@ -92,23 +93,23 @@ class Controller extends Singleton {
 				throw new \Exception('Route resolved to an invalid action:'.$route->getAction());
 			}
 		}
-		$c->{$route->getAction()}();		
+		$c->{$route->getAction()}();
 	}
-	
+
 	/**
 	 * Renders action
-	 * 
+	 *
 	 * @param Controller $c
 	 */
 	protected function render(ActionCtrl $c) {
 		return $c->render();
 	}
-	
+
 	/**
 	 * @return Controller
 	 */
 	static public function getInstance() {
 		return parent::getInstance();
 	}
-	
+
 }

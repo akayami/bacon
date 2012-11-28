@@ -21,7 +21,11 @@ class Auto extends Regex {
 	}
 
 	public function getController() {
-		return $this->namespace.'\\Controller'.ucfirst($this->controller);
+		return $this->namespace.'\\'.ucfirst($this->controller);
+	}
+
+	public function getControllerClass() {
+		return $this->namespace.'\\'.ucfirst($this->controller).$this->controllerSuffix;
 	}
 
 	/**

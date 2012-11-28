@@ -5,6 +5,8 @@ abstract class Abstr {
 
 	public $controller;
 	public $action;
+	protected $controllerSuffix = 'Controller';
+
 
 	/**
 	 *
@@ -18,6 +20,10 @@ abstract class Abstr {
 
 	public function getController() {
 		return $this->controller;
+	}
+
+	public function getControllerClass() {
+		return $this->controller.$this->controllerSuffix;
 	}
 
 	public function getAction() {
