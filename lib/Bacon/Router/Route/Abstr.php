@@ -2,12 +2,12 @@
 namespace Bacon\Router\Route;
 
 abstract class Abstr {
-	
+
 	public $controller;
 	public $action;
 
 	/**
-	 * 
+	 *
 	 * @param string $controller
 	 * @param string $action
 	 */
@@ -19,11 +19,11 @@ abstract class Abstr {
 	public function getController() {
 		return $this->controller;
 	}
-	
+
 	public function getAction() {
 		return $this->action;
 	}
-	
+
 	public function validate() {
 		return false;
 	}

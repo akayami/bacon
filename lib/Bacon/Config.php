@@ -34,7 +34,7 @@ class Config implements \ArrayAccess {
 	}
 
 	public static function isInitialized() {
-		return isset(static::$config);
+		return !is_null(static::$config);
 	}
 
 	private function __construct() {

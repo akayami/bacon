@@ -10,9 +10,9 @@ class Auto extends Regex {
 	public $matches;
 	protected $namespace;
 	protected $defaultAction;
-	
+
 	/**
-	 * 
+	 *
 	 */
 	public function __construct($defaultControllerNamespace = '', $defaultAction = 'index') {
 		parent::__construct('#/(?<controller>\w+)(/(?<action>\w+))?(?<uriparams>.*)$#', '', '');
@@ -21,9 +21,9 @@ class Auto extends Regex {
 	}
 
 	public function getController() {
-		return $this->namespace.'\\'.ucfirst($this->controller);
-	}	
-	
+		return $this->namespace.'\\Controller'.ucfirst($this->controller);
+	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see Bacon\Router.Route::isValid()
@@ -35,12 +35,12 @@ class Auto extends Regex {
 			if(isset($this->matches['uriparams'])) {
 				$this->matches = array_merge($this->matches, $this->parseURI($this->matches['uriparams']));
 			}
-		}		
-		return $result;		
+		}
+		return $result;
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param unknown_type $uri
 	 * @return array
 	 */
@@ -58,7 +58,7 @@ class Auto extends Regex {
 		}
 		return $values;
 	}
-	
+
 	function validate() {
 		return true;
 	}
