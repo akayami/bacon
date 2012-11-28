@@ -11,7 +11,16 @@ namespace Bacon;
 
 class Collection implements \ArrayAccess, \Iterator, \Countable {
 
-	private $__current;
+	/**
+	 *
+	 * @var array
+	 */
+	public $__current;
+
+	/**
+	 *
+	 * @var array
+	 */
 	private $__myArray = array();
 
 	/**
@@ -26,6 +35,14 @@ class Collection implements \ArrayAccess, \Iterator, \Countable {
 				$this->__current = $data;
 			}
 		}
+	}
+
+	/**
+	 *
+	 * @return array
+	 */
+	public function getCurrent() {
+		return $this->__current;
 	}
 
 	/**
