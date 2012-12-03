@@ -8,9 +8,9 @@ class Request extends ArrayObject {
 	protected static $instance;
 	protected $uri = array();
 	protected $isUriSet = false;
-	
+
 	/**
-	 * @return yami\Http\Request
+	 * @return Bacon\Http\Request
 	 */
 	static public function getInstance() {
 		if(!isset(static::$instance)) {
@@ -18,35 +18,71 @@ class Request extends ArrayObject {
 		}
 		return static::$instance;
 	}
-		
+
 	protected function __construct() {
 		$this->__data = array_merge($_SERVER, $_POST, $_GET, $_COOKIE, $_REQUEST, $this->uri, $this->__data);
-	}	
-	
+	}
+
 	public function __clone() {
 		throw new \Exception('Cannot clone a singleton:'.get_called_class());
 	}
-	
+
 	public function __wakeup() {
 		throw new \Exception('Unserializing is not allowed for singleton:'.get_called_class());
 	}
-	
+
+	/**
+	 * Flatterns a multi-level array into: key[sub1][sub2][sub3] = $val
+	 * Returns a flat array that can be piped into query string
+	 *
+	 * @param array $data
+	 * @return array
+	 */
+	public function queryStringFlattern(array $data = array()) {
+		$output = array();
+		foreach($data as $key => $val) {
+			if(is_array($val)) {
+				foreach($this->readSub($val) as $item => $val) {
+					$output[$key.$item] = $val;
+				}
+			} else {
+				$output[$key] = $val;
+			}
+		}
+		return $output;
+	}
+
+	private function readSub(array $data) {
+		$output = array();
+		foreach($data as $key => $val) {
+			if(is_array($val)) {
+				$sub = $this->readSub($val);
+				foreach($sub as $subkey => $val) {
+					$output['['.$key.']'.$subkey] = $val;
+				}
+			} else {
+				$output['['.$key.']'] = $val;
+			}
+		}
+		return $output;
+	}
+
 	public function queryString(array $replacements = array()) {
-		$d = array_merge($_GET, $replacements);
+		$d = $this->queryStringFlattern($replacements);
 		$out = array();
 		foreach($d as $key => $val) {
 			$out[] = $key.'='.urldecode($val);
 		}
 		return htmlentities(implode('&', $out));
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $key
 	 * @param string $source
 	 */
 	public function has($key, $source = null) {
-				
+
 		switch($source) {
 			case 'request':
 				return isset($_REQUEST[$key]);
@@ -67,9 +103,9 @@ class Request extends ArrayObject {
 				return isset($this->__data[$key]);
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $key
 	 * @param string $default
 	 * @param string $source
@@ -93,16 +129,16 @@ class Request extends ArrayObject {
 					return $this->uri[$key];
 					break;
 				default:
-					return $this->__data[$key];					
+					return $this->__data[$key];
 					//return (isset($_REQUEST[$key]) || isset($_GET[$key]) || isset($_POST[$key]) || isset($_COOKIE[$key]) || isset($this->uri[$key])) ? $this->__data[$key] : '' ;
 			}
 		} else {
 			return $default;
 		}
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param string $key
 	 * @param string $value
 	 * @param string $source
@@ -113,14 +149,14 @@ class Request extends ArrayObject {
 		switch($source) {
 			case 'uri':
 				if(!$overwriteURIBlock) {
-					throw new \Exception('Cannot set uri type');	
+					throw new \Exception('Cannot set uri type');
 				} else {
 					$this->uri[$key] = $value;
 					$this->__data[$key] = $value;
 				}
 				break;
 			case 'request':
-				throw new \Exception('Cannot set request type');				
+				throw new \Exception('Cannot set request type');
 			case 'get':
 				throw new \Exception('Cannot set get type');
 			case 'post':
@@ -131,7 +167,7 @@ class Request extends ArrayObject {
 				$this->__data[$key] = $value;
 		}
 	}
-	
+
 	public function setURI(array $uri = array()) {
 		if($this->isUriSet === true) {
 			throw new \Exception('uri namespace already set');
