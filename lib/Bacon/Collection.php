@@ -66,7 +66,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 
 	/**
 	 *
-	 * @return \yami\Database\Cluster
+	 * @return \Bacon\Database\Cluster
 	 */
 	public static function getCluster() {
 		global $config;
