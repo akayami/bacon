@@ -7,6 +7,14 @@ interface Adapter {
 
 	public function __construct(array $config);
 
+
+	/**
+	 *
+	 * @param string $query
+	 * @return \Bacon\Database\Statement
+	 */
+	public function prepare($query);
+
 	/**
 	 * Executes a query with placeholders
 	 *
