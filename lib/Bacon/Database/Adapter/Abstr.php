@@ -108,15 +108,16 @@ abstract class Abstr implements Adapter {
 	public function insert($table, array $data = array(), array $filter = array()) {
 		$data = array_diff_key($data, array_flip($filter));
 		$fields = array_keys($data);
+		$c = $this;
 		array_walk($fields,
-		function(&$item, $key) 	{
-			$item = $this->quoteIdentifier($item);
+		function(&$item, $key) use ($c)	{
+			$item = $c->quoteIdentifier($item);
 		}
 		);
 
 		array_walk($data,
-		function(&$item, $key) {
-			$item = $this->quote($item);
+		function(&$item, $key) use ($c) {
+			$item = $c->quote($item);
 		}
 		);
 
