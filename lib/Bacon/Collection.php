@@ -77,17 +77,20 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 *
 	 * @param string $extra
 	 * @param array $phs
-	 * @return \webcams\Collection
+	 * @param Adapter $conn
+	 * @param Cache $cache
+	 * @return multitype:|\Bacon\Collection
 	 */
-	public static function select($extra, $phs, Cache $cache = null) {
+	public static function select($extra, $phs, Adapter $conn = null, Cache $cache = null) {
 		$q = 'SELECT '.static::$table.'.* FROM '.static::$table.' '.$extra;
-		$conn = static::getCluster()->slave();
+		if(is_null($conn)) {
+			$conn = static::getCluster()->slave();
+		}
 		if(!is_null($cache)) {
 			ksort($phs);
 			$key = $q.serialize($phs);
-			error_log($key);
 			$data = $cache->get($key, function() use ($conn, $q, $phs) {
-				error_log('using cache');
+				error_log('Building cache');
 				return $conn->pquery($q, $phs)->fetchAll();
 			});
 		} else {
@@ -140,6 +143,15 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 
 	public static function getStandardFilteredFields() {
 		return array_merge(array(static::$idField), static::$readonlyFields);
+	}
+
+	public function seek($index) {
+		foreach($this as $key => $row) {
+			if($key === $index) {
+				$this->rewind();
+			}
+		}
+		return $this;
 	}
 
 
@@ -230,5 +242,21 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 */
 	public function count() {
 		return count($this->__myArray);
+	}
+
+	/**
+	 * Extract array of values for specific colunn in array
+	 *
+	 * @param string $field
+	 * @return array
+	 */
+	public function values($field) {
+		$output = [];
+		foreach($this->__myArray as $row) {
+			if(isset($row[$field])) {
+				$output[] = $row[$field];
+			}
+		}
+		return $output;
 	}
 }

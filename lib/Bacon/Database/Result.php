@@ -64,4 +64,12 @@ interface Result {
 	 */
 	public function fetchMapped();
 
+
+	/**
+	 * Fetch all result and index them by value of specified column
+	 *
+	 * @param mixed $col
+	 */
+	public function fetchAllIndexedByCol($col);
+
 }

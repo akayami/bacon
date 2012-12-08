@@ -41,6 +41,18 @@ abstract class CommonResult implements Result {
 		return $output;
 	}
 
+	public function fetchAllIndexedByCol($col) {
+		$output = [];
+		$this->fetchMode(self::FETCH_ASSOC);
+		while($row = $this->fetch()) {
+			if(!isset($row[$col])) {
+				throw new \Exception('Failed to fetch. Indicated column not present in result');
+			}
+			$output[$row[$col]] = $row;
+		}
+		return $output;
+	}
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \Bacon\Database\Result::fetchCol()
