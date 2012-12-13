@@ -4,9 +4,9 @@ namespace Bacon\Redis;
 class Cluster {
 
 	private $config;
-	
+
 	private $instances = array();
-	
+
 	private $configTemplate = array(
 			'hostname' => '',
 			'port' => 6379,
@@ -14,7 +14,7 @@ class Cluster {
 			'socket' => '',
 			'persistent' => false,
 	);
-	
+
 	/**
 	 *
 	 * Enter description here ...
@@ -23,7 +23,7 @@ class Cluster {
 	public function __construct(array $config) {
 		$this->config = $config;
 	}
-	
+
 	/**
 	 *
 	 * Enter description here ...
@@ -33,7 +33,7 @@ class Cluster {
 	public function master($new = false) {
 		return $this->get('master', $new);
 	}
-	
+
 	/**
 	 *
 	 * Enter description here ...
@@ -43,7 +43,7 @@ class Cluster {
 	public function slave($new = false) {
 		return $this->get('slave', $new);
 	}
-	
+
 	/**
 	 *
 	 * Enter description here ...
@@ -67,42 +67,42 @@ class Cluster {
 		$config = array_merge($config, $this->config[$type]['servers'][$x]);
 		if(!isset($this->instances[$type])) {
 			$key = $type.'_default';
-		} else {					
+		} else {
 			do {
 				$key = $type.'_'.md5(mt_rand(1, 10000).time());
 			} while(!isset($key) || isset($this->instances[$type][$key]));
 		}
-		
+
 		$this->instances[$type][$key] = $this->getRedis($config);
-		
+
 		return $this->instances[$type][$key];
 	}
-	
+
 	/**
-	 *  
+	 *
 	 * @param array $config
 	 * @return \Redis
-	 * 
+	 *
 	 */
 	private function getRedis($config) {
 		$a = new \Redis();
 		(strlen($config['socket']) == 0) ? ($config['persistent'] ? $a->pconnect($config['hostname'], $config['port'], $config['timeout']) : $a->connect($config['hostname'], $config['port'], $config['timeout'])) : $a->connect($config['socket']);
-		return $a;		
+		return $a;
 	}
-	
-	
+
+
 	public function __destruct() {
-// 		foreach($this->instances as $type => $conns) {
-// 			foreach($conns as $conn) {
-// 				try {
-// 					if($conn->ping()) {
-// 						$conn->close();
-// 					}
-// 				} catch(RedisException $e) {
-					
-// 				}
-// 			}
-// 		} 
-			
+		foreach($this->instances as $type => $conns) {
+			foreach($conns as $conn) {
+				try {
+					if($conn->ping()) {
+						$conn->close();
+					}
+				} catch(RedisException $e) {
+
+				}
+			}
+		}
+
 	}
 }
