@@ -1,7 +1,12 @@
 <?php
 namespace Bacon\Misc;
 
-abstract class Singleton {
+/**
+ *
+ * @author tomasz
+ */
+
+Trait Singleton {
 
 	protected static $__instance;
 

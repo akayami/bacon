@@ -6,8 +6,9 @@ use Bacon\Router\Action\Controller as ActionCtrl;
 use Bacon\Misc\Singleton;
 use Bacon\Http\Request;
 
-class Controller extends Singleton {
+class Controller {
 
+	use Singleton;
 
 	protected static $instance;
 
@@ -104,12 +105,4 @@ class Controller extends Singleton {
 	protected function render(ActionCtrl $c) {
 		return $c->render();
 	}
-
-	/**
-	 * @return Controller
-	 */
-	static public function getInstance() {
-		return parent::getInstance();
-	}
-
 }
