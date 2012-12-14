@@ -3,16 +3,16 @@ namespace Bacon\Misc;
 
 abstract class Singleton {
 
-	protected static $instance;
+	protected static $__instance;
 
 	/**
 	 * @return self
 	 */
 	static public function getInstance() {
-		if(!isset(static::$instance)) {
-			static::$instance = new static();
+		if(!isset(static::$__instance)) {
+			static::$__instance = new static();
 		}
-		return static::$instance;
+		return static::$__instance;
 	}
 
 	protected function __construct() {
