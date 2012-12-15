@@ -39,7 +39,15 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @param array $data
 	 */
 	public function __construct(array $data = null) {
-		$this->__myArray = is_array($data) ? $data : array();
+		if(is_array($data)) {
+			if(is_array(array_shift(array_values($data)))) {	//checks if the first element is an array
+				$this->__myArray = $data; 								// Looks like dataset
+				$this->__current = array_shift(array_values($data));	// Setting this first entry as __current
+			} else {
+				$this->__myArray = array($data);						// Looks like a row, making it a 1 row recordset
+				$this->__current = $data;
+			}
+		}
 	}
 
 	/**
