@@ -1,23 +1,29 @@
 <?php
 namespace Bacon\Redis;
 
+use Bacon\Config;
+
 class Manager {
-	
+
 	/**
-	 * 
+	 *
 	 * @var Manager
 	 */
 	private static $instance;
 	private static $config;
 	private static $clusters = array();
-	
+
 	private function __construct() {
 		if(!isset(static::$config)) {			// Lazy self-provisioning.
-			global $config;
-			static::setConfig($config['redis']);
+			if(class_exists('\Bacon\Config', true)) {
+				static::setConfig(Config::getInstance()['redis']);
+			} else {
+				global $config;
+				static::setConfig($config['redis']);
+			}
 		}
 	}
-	
+
 	public function __clone() {
 		throw new \Exception('Cannot clone a singleton:'.get_called_class());
 	}
@@ -25,11 +31,11 @@ class Manager {
 	public function __wakeup() {
 		throw new \Exception('Unserializing is not allowed for singleton:'.get_called_class());
 	}
-	
+
 	public static function setConfig(array $config) {
 		static::$config = $config;
 	}
-	
+
 	/**
 	 * Enter description here ...
 	 *
@@ -40,8 +46,8 @@ class Manager {
 			static::$instance = new static();
 		}
 		return static::$instance;
-	}	
-		
+	}
+
 	/**
 	 *
 	 * Enter description here ...
@@ -50,7 +56,7 @@ class Manager {
 	 * @throws Exception
 	 */
 	public function get($cluster = 'default') {
-	
+
 		if(isset(static::$clusters[$cluster])) {
 			return static::$clusters[$cluster];
 		}
@@ -58,8 +64,8 @@ class Manager {
 			static::$clusters[$cluster] = new Cluster(static::$config[$cluster]);
 			return static::$clusters[$cluster];
 		} else {
-			throw new \Exception('MC Cluster '.$cluster.' not defined!');
+			throw new \Exception('Redis Cluster '.$cluster.' not defined!');
 		}
 	}
-	
+
 }

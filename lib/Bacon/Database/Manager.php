@@ -10,7 +10,6 @@ class Manager {
 	private function __construct() {
 		if(!isset(static::$config)) {			// Lazy self-provisioning.
 			if(class_exists('\Bacon\Config', true) && \Bacon\Config::isInitialized()) {
-				error_log(print_r(\Bacon\Config::getInstance(), true));
 				static::setConfig(\Bacon\Config::getInstance()['db']);
 			} else {
 				global $config;

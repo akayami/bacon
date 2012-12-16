@@ -1,6 +1,8 @@
 <?php
 namespace Bacon\Memcached;
 
+use Bacon\Config;
+
 class Manager {
 
 	/**
@@ -13,8 +15,12 @@ class Manager {
 
 	private function __construct() {
 		if(!isset(static::$config)) {			// Lazy self-provisioning.
-			global $config;
-			static::setConfig($config['mc']);
+			if(class_exists('\Bacon\Config', true)) {
+				static::setConfig(Config::getInstance()['mc']);
+			} else {
+				global $config;
+				static::setConfig($config['mc']);
+			}
 		}
 	}
 

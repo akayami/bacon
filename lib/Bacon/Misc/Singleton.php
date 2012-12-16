@@ -8,16 +8,16 @@ namespace Bacon\Misc;
 
 Trait Singleton {
 
-	protected static $__instance;
+	protected static $_instance;
 
 	/**
 	 * @return self
 	 */
-	static public function getInstance() {
-		if(!isset(static::$__instance)) {
-			static::$__instance = new static();
+	public static function getInstance() {
+		if(!isset(static::$_instance)) {
+			static::$_instance = new static();
 		}
-		return static::$__instance;
+		return static::$_instance;
 	}
 
 	protected function __construct() {
