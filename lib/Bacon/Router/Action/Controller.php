@@ -25,6 +25,10 @@ class Controller {
 		$this->setActionName(AppController::getInstance()->route->getAction());
 	}
 
+	public function postConstruct() {
+
+	}
+
 	protected function getView() {
 		return new View();
 	}

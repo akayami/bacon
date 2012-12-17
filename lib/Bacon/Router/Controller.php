@@ -62,6 +62,7 @@ class Controller {
 	 */
 	protected function handleRoute(Route $route) {
 		$controller = $this->loadController($route);
+		$controller->postConstruct();
 		$this->executeAction($route, $controller);
 		$this->render($controller);
 	}
@@ -74,7 +75,6 @@ class Controller {
 	 */
 	protected function loadController(Route $route) {
 		$cName = $route->getControllerClass();
-		error_log($cName);
 		if($route->validate() && !class_exists($cName, true)) {
 			throw new \Exception('Route resolved to an invalid controller: '.$cName);
 		}
