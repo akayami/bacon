@@ -10,14 +10,15 @@ Trait Singleton {
 
 	protected static $_instance;
 
-	/**
-	 * @return self
-	 */
 	public static function getInstance() {
 		if(!isset(static::$_instance)) {
-			static::$_instance = new static();
+			static::$_instance = static::_instance();
 		}
 		return static::$_instance;
+	}
+
+	protected static function _instance() {
+		return new static();
 	}
 
 	protected function __construct() {

@@ -87,7 +87,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 		return Manager::singleton()->get(static::$cluster);
 	}
 
-	public static function load($extra, $phs, Adapter $adapter = null) {
+	public static function load($extra, array $phs = null, Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->slave() : $adapter);
 		if (($row = $adapter->pquery(
 				'SELECT * FROM `' . static::$table . '` ' . $extra,
@@ -106,7 +106,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return multitype:|\Bacon\Collection
 	 */
 
-	public static function select($extra, $phs, Adapter $conn = null,
+	public static function select($extra, array $phs = null, Adapter $conn = null,
 			Cache $cache = null) {
 		$q = 'SELECT ' . static::$table . '.* FROM ' . static::$table . ' ' . $extra;
 		if (is_null($conn)) {
@@ -118,7 +118,6 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 			$data = $cache->get(
 					$key,
 					function () use ($conn, $q, $phs) {
-						error_log('Building cache');
 						return $conn->pquery($q, $phs)->fetchAll();
 					});
 		} else {
@@ -170,6 +169,26 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 				static::$table,
 				$where,
 				$data);
+		return $adapter;
+	}
+
+	/**
+	 *
+	 * @param unknown $where
+	 * @param Adapter $adapter
+	 * @return Adapter
+	 */
+	public static function delete($where, Adapter $adapter = null) {
+		if (is_null($adapter)) {
+			$adapter = static::getCluster()->master();
+		}
+		if (is_int($where)) {
+			$cond = static::$idField.'={int:id}';
+			$where = array(
+				$cond,
+				array('id' => $where));
+		}
+		$adapter->delete(static::$table, $where);
 		return $adapter;
 	}
 

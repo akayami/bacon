@@ -8,9 +8,12 @@ use Bacon\Http\Request;
 
 class Controller {
 
+	/**
+	 * @var Controller
+	 * @return Controller
+	 */
 	use Singleton;
 
-	protected static $instance;
 
 	public $routes;
 
