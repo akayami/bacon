@@ -2,6 +2,8 @@
 
 namespace Bacon;
 
+use Bacon\Cache\Nocache;
+
 use Bacon\Cache;
 use Bacon\Database\Adapter;
 use Bacon\Database\Manager;
@@ -15,12 +17,18 @@ use Bacon\Database\Manager;
  */
 abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 
-	static $idField;
+	protected static $idField;
 	static $table;
 	static $cluster = 'default';
 	static $readonlyFields = array();
 	static $insertFields = false;
 	static $updateFields = false;
+	protected static $structure;
+	/**
+	 *
+	 * @var Cache
+	 */
+	protected static $structureCacheAdapter;
 
 	protected $__dirty = array();
 
@@ -53,8 +61,41 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 		}
 	}
 
+	public static function getCacheAdapter() {
+		if(!isset(static::$structureCacheAdapter)) {
+			static::$structureCacheAdapter = new Nocache();
+		}
+		return static::$structureCacheAdapter;
+	}
+
+	public static function setCollectionStructureCaching(Cache $cache) {
+		static::$structureCacheAdapter = $cache;
+	}
+
+	public static function getStructure() {
+		if(!isset(static::$structure)) {
+			static::$structure = static::getCacheAdapter()->get('structure:'.static::$cluster.static::$table, function() {
+				error_log('loading structure from db');
+				return static::getCluster()->slave()->query('SHOW FULL columns FROM Member')->fetchAllIndexedByCol('Field');
+			});
+		}
+		return static::$structure;
+	}
+
+	public static function getIDField(){
+		if(!isset(static::$idField)) {
+			$structure = static::getStructure();
+			foreach($structure as $fieldname => $field) {
+				if($field['KEY'] = 'PRI') {
+					static::$idField=$fieldname;
+				}
+			}
+		}
+		return static::$idField;
+	}
+
 	public function getId() {
-		return $this[$this::$idField];
+		return $this[$this::getIDField()];
 	}
 
 	/**
@@ -65,16 +106,57 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 
 	public function save(Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
-//		error_log(print_r($this->getCurrent(), true));exit;
-		if (isset($this[static::$idField])) {
+		if (isset($this[static::getIDField()])) {
 			return self::update(
-					array_intersect_key($this->getCurrent(), array_flip($this->__dirty)),
+					self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))),
 					array(
-							$this::$idField . '={int:id}',
-							array('id' => $this[static::$idField])));
+							static::getIDField() . '={int:id}',
+							array('id' => $this->getId())));
 		} else {
-			return self::insert($this->getCurrent());
+			return self::insert(self::sanitize($this->getCurrent()));
 		}
+	}
+
+
+	/**
+	 * Check for fields type
+	 *
+	 * @param string $type
+	 * @return string
+	 */
+	protected static function extractFieldType($type) {
+		if($type == 'text' || substr($type, 0, 3) == 'char' || substr($type, 0, 6) == 'varchar') {
+			return 'string';
+		}
+		if(substr($type, 0, 3) == 'int') {
+			return 'int';
+		}
+	}
+
+	/**
+	 * General purpose data sanitization function. Takes dirty fields and sanitizes their values
+	 * @param array $data
+	 * @return array
+	 */
+	public static function sanitize($data) {
+		$structure = static::getStructure();
+		array_walk($data, function($val, $key) use ($structure) {
+			switch(static::extractFieldType($structure[$key]['Type'])) {
+				case 'string':
+					$newVal = (string)$val;
+					break;
+				case 'int':
+					$newVal = (int)$val;
+					break;
+				default:
+					$newVal = $val;
+					break;
+			}
+			if($newVal !== $val) {
+				trigger_error('Collection sanitized value for key:'.$key);
+			}
+		});
+		return $data;
 	}
 
 	/**
@@ -83,7 +165,6 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 */
 
 	public static function getCluster() {
-		global $config;
 		return Manager::singleton()->get(static::$cluster);
 	}
 
@@ -135,7 +216,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	public static function byId($id, Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->slave() : $adapter);
 		return new static($adapter->pquery(
-				'SELECT * FROM `' . static::$table . '` WHERE `' . static::$idField . '`={int:id}',
+				'SELECT * FROM `' . static::$table . '` WHERE `' . static::getIDField() . '`={int:id}',
 				array('id' => $id))->fetch());
 	}
 
@@ -151,10 +232,10 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 		if (is_null($adapter)) {
 			$adapter = static::getCluster()->master();
 		}
-		//error_log(static::$idField);exit;
-		//sstatic::$idField.'={int:id}');
+		//error_log(static::getIDField());exit;
+		//sstatic::getIDField().'={int:id}');
 		if (is_int($where)) {
-			$cond = static::$idField.'={int:id}';
+			$cond = static::getIDField().'={int:id}';
 			$where = array(
 					$cond,
 					array('id' => $where));
@@ -162,7 +243,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 
 		if(self::$updateFields !== false) {
-			$data = array_intersect_key($data, array_flip(self::$updateFields));
+			$data = static::sanitize(array_intersect_key($data, array_flip(self::$updateFields)));
 		}
 
 		$adapter->update(
@@ -183,7 +264,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 			$adapter = static::getCluster()->master();
 		}
 		if (is_int($where)) {
-			$cond = static::$idField.'={int:id}';
+			$cond = static::getIDField().'={int:id}';
 			$where = array(
 				$cond,
 				array('id' => $where));
@@ -206,15 +287,15 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 		if(self::$insertFields !== false) {
-			$data = array_intersect_key($data, self::$insertFields);
+			$data = static::sanitize(array_intersect_key($data, self::$insertFields));
 		}
 
 		$adapter->insert(static::$table, $data);
 		return $adapter;
 	}
 
-	public static function getStandardFilteredFields() {
-		return array_merge(array(static::$idField), static::$readonlyFields);
+	protected static function getStandardFilteredFields() {
+		return array_merge(array(static::getIDField()), static::$readonlyFields);
 	}
 
 	public function seek($index) {
