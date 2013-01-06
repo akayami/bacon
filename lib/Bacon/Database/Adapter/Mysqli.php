@@ -1,6 +1,8 @@
 <?php
 namespace Bacon\Database\Adapter;
 
+use Bacon\Database\Adapter\Mysqli\Statement;
+
 use Bacon\Database\Adapter\Exception\Duplicate;
 
 use Bacon\Database\Adapter\Mysqli\Result;
@@ -12,7 +14,7 @@ class Mysqli extends Abstr {
 	/**
 	 *
 	 * Enter description here ...
-	 * @var mysqli
+	 * @var \mysqli
 	 */
 	protected $__handle;
 
@@ -24,6 +26,10 @@ class Mysqli extends Abstr {
 
 	}
 
+
+	public function prepare($query) {
+		return new Statement($this->handle->prepare($query), $this->handle);
+	}
 
 	/**
 	 *
