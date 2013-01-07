@@ -83,11 +83,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	}
 
 	public static function getIDField(){
-		if(!isset(static::$idField)) {
+		if(!is_null(static::$idField)) {
 			$structure = static::getStructure();
 			foreach($structure as $fieldname => $field) {
-				if($field['KEY'] = 'PRI') {
-					static::$idField=$fieldname;
+				if($field['Key'] === 'PRI') {
+					static::$idField=$field['Field'];
 				}
 			}
 		}

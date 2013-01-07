@@ -10,7 +10,7 @@ class Request extends ArrayObject {
 	protected $isUriSet = false;
 
 	/**
-	 * @return Bacon\Http\Request
+	 * @return self
 	 */
 	static public function getInstance() {
 		if(!isset(static::$instance)) {
