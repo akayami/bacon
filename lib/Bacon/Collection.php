@@ -187,9 +187,13 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return multitype:|\Bacon\Collection
 	 */
 
-	public static function select($extra, array $phs = null, Adapter $conn = null,
-			Cache $cache = null) {
+	public static function select($extra, array $phs = null, Adapter $conn = null, Cache $cache = null) {
 		$q = 'SELECT ' . static::$table . '.* FROM ' . static::$table . ' ' . $extra;
+		
+		return self::query($q, $phs, $conn, $cache);
+	}
+	
+	public static function query($q, array $phs = null, Adapter $conn = null, Cache $cache = null) {
 		if (is_null($conn)) {
 			$conn = static::getCluster()->slave();
 		}
