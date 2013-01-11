@@ -114,27 +114,35 @@ class Request extends ArrayObject {
 		if($this->has($key, $source)) {
 			switch($source) {
 				case 'request':
-					return $_REQUEST[$key];
+					$out = $_REQUEST[$key];
 					break;
 				case 'get':
-					return $_GET[$key];
+					$out = $_GET[$key];
 					break;
 				case 'post':
-					return $_POST[$key];
+					$out = $_POST[$key];
 					break;
 				case 'cookie':
-					return $_COOKIE[$key];
+					$out = $_COOKIE[$key];
 					break;
 				case 'uri':
-					return $this->uri[$key];
+					$out = $this->uri[$key];
 					break;
 				default:
-					return $this->__data[$key];
-					//return (isset($_REQUEST[$key]) || isset($_GET[$key]) || isset($_POST[$key]) || isset($_COOKIE[$key]) || isset($this->uri[$key])) ? $this->__data[$key] : '' ;
+					$out = $this->__data[$key];
 			}
+			return ($sanitize) ? strip_tags($out) : $out;
 		} else {
 			return $default;
 		}
+	}
+
+	/**
+	 * (non-PHPdoc)
+	 * @see \Bacon\Misc\ArrayObject::offsetGet()
+	 */
+	public function offsetGet($offset) {
+		return $this->get($offset, null, null, true);
 	}
 
 	/**
