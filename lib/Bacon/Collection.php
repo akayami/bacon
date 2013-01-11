@@ -15,7 +15,8 @@ use Bacon\Database\Manager;
  * 	A hybrid collection/entity object.
  *
  */
-abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
+abstract class Collection implements \ArrayAccess, \Iterator, \Countable
+{
 
 	protected static $idField;
 	static $table;
@@ -49,52 +50,69 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @param array $data
 	 */
 
-	public function __construct(array $data = null) {
-		if (is_array($data)) {
-			if (is_array(array_shift(array_values($data)))) { //checks if the first element is an array
+	public function __construct(array $data = null)
+	{
+		if (is_array($data))
+		{
+			if (is_array(array_shift(array_values($data))))
+			{ //checks if the first element is an array
 				$this->__myArray = $data; // Looks like dataset
 				$this->__current = array_shift(array_values($data)); // Setting this first entry as __current
-			} else {
+			}
+			else
+			{
 				$this->__myArray = array($data); // Looks like a row, making it a 1 row recordset
 				$this->__current = $data;
 			}
 		}
 	}
 
-	public static function getCacheAdapter() {
-		if(!isset(static::$structureCacheAdapter)) {
+	public static function getCacheAdapter()
+	{
+		if (!isset(static::$structureCacheAdapter))
+		{
 			static::$structureCacheAdapter = new Nocache();
 		}
 		return static::$structureCacheAdapter;
 	}
 
-	public static function setCollectionStructureCaching(Cache $cache) {
+	public static function setCollectionStructureCaching(Cache $cache)
+	{
 		static::$structureCacheAdapter = $cache;
 	}
 
-	public static function getStructure() {
-		if(!isset(static::$structure)) {
-			static::$structure = static::getCacheAdapter()->get('structure:'.static::$cluster.static::$table, function() {
-				error_log('loading structure from db');
-				return static::getCluster()->slave()->query('SHOW FULL columns FROM Member')->fetchAllIndexedByCol('Field');
-			});
+	public static function getStructure()
+	{
+		if (!isset(static::$structure))
+		{
+			$tableName = static::$table;
+			
+			static::$structure = static::getCacheAdapter()->get('structure:' . static::$cluster . static::$table, function () use ($tableName)
+					{
+						return static::getCluster()->slave()->query('SHOW FULL columns FROM ' . $tableName)->fetchAllIndexedByCol('Field');
+					});
 		}
 		return static::$structure;
 	}
 
-	public static function getIDField(){
-		if(!is_null(static::$idField)) {
+	public static function getIDField()
+	{
+		if (!is_null(static::$idField))
+		{
 			$structure = static::getStructure();
-			foreach($structure as $fieldname => $field) {
-				if($field['Key'] === 'PRI') {
-					static::$idField=$field['Field'];
+			foreach ($structure as $fieldname => $field)
+			{
+				if ($field['Key'] === 'PRI')
+				{
+					static::$idField = $field['Field'];
 				}
 			}
 		}
 		return static::$idField;
 	}
 
-	public function getId() {
+	public function getId()
+	{
 		return $this[$this::getIDField()];
 	}
 
@@ -104,19 +122,18 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @param Adapter $conn
 	 */
 
-	public function save(Adapter $adapter = null) {
+	public function save(Adapter $adapter = null)
+	{
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
-		if (isset($this[static::getIDField()])) {
-			return self::update(
-					self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))),
-					array(
-							static::getIDField() . '={int:id}',
-							array('id' => $this->getId())));
-		} else {
+		if (isset($this[static::getIDField()]))
+		{
+			return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), array(static::getIDField() . '={int:id}', array('id' => $this->getId())));
+		}
+		else
+		{
 			return self::insert(self::sanitize($this->getCurrent()));
 		}
 	}
-
 
 	/**
 	 * Check for fields type
@@ -124,11 +141,14 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @param string $type
 	 * @return string
 	 */
-	protected static function extractFieldType($type) {
-		if($type == 'text' || substr($type, 0, 3) == 'char' || substr($type, 0, 6) == 'varchar') {
+	protected static function extractFieldType($type)
+	{
+		if ($type == 'text' || substr($type, 0, 3) == 'char' || substr($type, 0, 6) == 'varchar')
+		{
 			return 'string';
 		}
-		if(substr($type, 0, 3) == 'int') {
+		if (substr($type, 0, 3) == 'int')
+		{
 			return 'int';
 		}
 	}
@@ -138,22 +158,26 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @param array $data
 	 * @return array
 	 */
-	public static function sanitize($data) {
+	public static function sanitize($data)
+	{
 		$structure = static::getStructure();
-		array_walk($data, function($val, $key) use ($structure) {
-			switch(static::extractFieldType($structure[$key]['Type'])) {
-				case 'string':
-					$newVal = (string)$val;
-					break;
-				case 'int':
-					$newVal = (int)$val;
-					break;
-				default:
-					$newVal = $val;
-					break;
+		array_walk($data, function ($val, $key) use ($structure)
+		{
+			switch (static::extractFieldType($structure[$key]['Type']))
+			{
+			case 'string':
+				$newVal = (string) $val;
+				break;
+			case 'int':
+				$newVal = (int) $val;
+				break;
+			default:
+				$newVal = $val;
+				break;
 			}
-			if($newVal !== $val) {
-				trigger_error('Collection sanitized value for key:'.$key);
+			if ($newVal !== $val)
+			{
+				trigger_error('Collection sanitized value for key:' . $key);
 			}
 		});
 		return $data;
@@ -164,15 +188,16 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return \Bacon\Database\Cluster
 	 */
 
-	public static function getCluster() {
+	public static function getCluster()
+	{
 		return Manager::singleton()->get(static::$cluster);
 	}
 
-	public static function load($extra, array $phs = null, Adapter $adapter = null) {
+	public static function load($extra, array $phs = null, Adapter $adapter = null)
+	{
 		$adapter = (is_null($adapter) ? static::getCluster()->slave() : $adapter);
-		if (($row = $adapter->pquery(
-				'SELECT * FROM `' . static::$table . '` ' . $extra,
-				$phs)->fetch()) == null) {
+		if (($row = $adapter->pquery('SELECT * FROM `' . static::$table . '` ' . $extra, $phs)->fetch()) == null)
+		{
 			throw new \Exception('Record not found');
 		}
 		return new static($row);
@@ -187,25 +212,30 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return multitype:|\Bacon\Collection
 	 */
 
-	public static function select($extra, array $phs = null, Adapter $conn = null, Cache $cache = null) {
+	public static function select($extra, array $phs = null, Adapter $conn = null, Cache $cache = null)
+	{
 		$q = 'SELECT ' . static::$table . '.* FROM ' . static::$table . ' ' . $extra;
-		
+
 		return self::query($q, $phs, $conn, $cache);
 	}
-	
-	public static function query($q, array $phs = null, Adapter $conn = null, Cache $cache = null) {
-		if (is_null($conn)) {
+
+	public static function query($q, array $phs = null, Adapter $conn = null, Cache $cache = null)
+	{
+		if (is_null($conn))
+		{
 			$conn = static::getCluster()->slave();
 		}
-		if (!is_null($cache)) {
+		if (!is_null($cache))
+		{
 			ksort($phs);
 			$key = $q . serialize($phs);
-			$data = $cache->get(
-					$key,
-					function () use ($conn, $q, $phs) {
+			$data = $cache->get($key, function () use ($conn, $q, $phs)
+					{
 						return $conn->pquery($q, $phs)->fetchAll();
 					});
-		} else {
+		}
+		else
+		{
 			$data = $conn->pquery($q, $phs)->fetchAll();
 		}
 		return new static($data);
@@ -217,11 +247,10 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return \Bacon\Collection
 	 */
 
-	public static function byId($id, Adapter $adapter = null) {
+	public static function byId($id, Adapter $adapter = null)
+	{
 		$adapter = (is_null($adapter) ? static::getCluster()->slave() : $adapter);
-		return new static($adapter->pquery(
-				'SELECT * FROM `' . static::$table . '` WHERE `' . static::getIDField() . '`={int:id}',
-				array('id' => $id))->fetch());
+		return new static($adapter->pquery('SELECT * FROM `' . static::$table . '` WHERE `' . static::getIDField() . '`={int:id}', array('id' => $id))->fetch());
 	}
 
 	/**
@@ -232,28 +261,27 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return Adapter
 	 */
 
-	public static function update(array $data, $where, Adapter $adapter = null) {
-		if (is_null($adapter)) {
+	public static function update(array $data, $where, Adapter $adapter = null)
+	{
+		if (is_null($adapter))
+		{
 			$adapter = static::getCluster()->master();
 		}
 		//error_log(static::getIDField());exit;
 		//sstatic::getIDField().'={int:id}');
-		if (is_int($where)) {
-			$cond = static::getIDField().'={int:id}';
-			$where = array(
-					$cond,
-					array('id' => $where));
+		if (is_int($where))
+		{
+			$cond = static::getIDField() . '={int:id}';
+			$where = array($cond, array('id' => $where));
 		}
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 
-		if(self::$updateFields !== false) {
+		if (self::$updateFields !== false)
+		{
 			$data = static::sanitize(array_intersect_key($data, array_flip(self::$updateFields)));
 		}
 
-		$adapter->update(
-				static::$table,
-				$where,
-				$data);
+		$adapter->update(static::$table, $where, $data);
 		return $adapter;
 	}
 
@@ -263,15 +291,16 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @param Adapter $adapter
 	 * @return Adapter
 	 */
-	public static function delete($where, Adapter $adapter = null) {
-		if (is_null($adapter)) {
+	public static function delete($where, Adapter $adapter = null)
+	{
+		if (is_null($adapter))
+		{
 			$adapter = static::getCluster()->master();
 		}
-		if (is_int($where)) {
-			$cond = static::getIDField().'={int:id}';
-			$where = array(
-				$cond,
-				array('id' => $where));
+		if (is_int($where))
+		{
+			$cond = static::getIDField() . '={int:id}';
+			$where = array($cond, array('id' => $where));
 		}
 		$adapter->delete(static::$table, $where);
 		return $adapter;
@@ -284,13 +313,16 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return Adapter
 	 */
 
-	public static function insert(array $data, Adapter $adapter = null) {
-		if (is_null($adapter)) {
+	public static function insert(array $data, Adapter $adapter = null)
+	{
+		if (is_null($adapter))
+		{
 			$adapter = static::getCluster()->master();
 		}
 
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
-		if(self::$insertFields !== false) {
+		if (self::$insertFields !== false)
+		{
 			$data = static::sanitize(array_intersect_key($data, self::$insertFields));
 		}
 
@@ -298,14 +330,18 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 		return $adapter;
 	}
 
-	protected static function getStandardFilteredFields() {
+	protected static function getStandardFilteredFields()
+	{
 		return array_merge(array(static::getIDField()), static::$readonlyFields);
 	}
 
-	public function seek($index) {
+	public function seek($index)
+	{
 		$this->rewind();
-		foreach ($this as $key => $row) {
-			if ($key == $index) {
+		foreach ($this as $key => $row)
+		{
+			if ($key == $index)
+			{
 				return $this;
 			}
 		}
@@ -317,7 +353,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return array
 	 */
 
-	public function getCurrent() {
+	public function getCurrent()
+	{
 		return $this->__current;
 	}
 
@@ -326,7 +363,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see ArrayAccess::offsetExists()
 	 */
 
-	public function offsetExists($offset) {
+	public function offsetExists($offset)
+	{
 		return isset($this->__current[$offset]);
 	}
 
@@ -335,7 +373,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see ArrayAccess::offsetGet()
 	 */
 
-	public function offsetGet($offset) {
+	public function offsetGet($offset)
+	{
 		return $this->__current[$offset];
 	}
 
@@ -344,7 +383,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see ArrayAccess::offsetSet()
 	 */
 
-	public function offsetSet($offset, $value) {
+	public function offsetSet($offset, $value)
+	{
 		$this->__dirty[] = $offset;
 		$this->__current[$offset] = $value;
 	}
@@ -354,7 +394,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see ArrayAccess::offsetUnset()
 	 */
 
-	public function offsetUnset($offset) {
+	public function offsetUnset($offset)
+	{
 		unset($this->__current[$offset]);
 	}
 
@@ -363,7 +404,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see Iterator::rewind()
 	 */
 
-	public function rewind() {
+	public function rewind()
+	{
 		return reset($this->__myArray);
 	}
 
@@ -372,7 +414,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return $this
 	 */
 
-	public function current() {
+	public function current()
+	{
 		$this->__current = current($this->__myArray);
 		$this->__dirty = []; // Resets dirty
 		return $this;
@@ -383,7 +426,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see Iterator::key()
 	 */
 
-	public function key() {
+	public function key()
+	{
 		return key($this->__myArray);
 	}
 
@@ -392,7 +436,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see Iterator::next()
 	 */
 
-	public function next() {
+	public function next()
+	{
 		return next($this->__myArray);
 	}
 
@@ -401,7 +446,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see Iterator::valid()
 	 */
 
-	public function valid() {
+	public function valid()
+	{
 		return key($this->__myArray) !== null;
 	}
 
@@ -410,7 +456,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @see Countable::count()
 	 */
 
-	public function count() {
+	public function count()
+	{
 		return count($this->__myArray);
 	}
 
@@ -421,10 +468,13 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable {
 	 * @return array
 	 */
 
-	public function values($field) {
+	public function values($field)
+	{
 		$output = [];
-		foreach ($this->__myArray as $row) {
-			if (isset($row[$field])) {
+		foreach ($this->__myArray as $row)
+		{
+			if (isset($row[$field]))
+			{
 				$output[] = $row[$field];
 			}
 		}
