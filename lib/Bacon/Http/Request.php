@@ -131,10 +131,21 @@ class Request extends ArrayObject {
 				default:
 					$out = $this->__data[$key];
 			}
-			return ($sanitize) ? strip_tags($out) : $out;
+			return ($sanitize) ? $this->recursiveSanitize($out) : $out;
 		} else {
 			return $default;
 		}
+	}
+
+	private function recursiveSanitize($var) {
+		if(is_array($var)) {
+			foreach($var as $key => $val) {
+				$var[$key] = $this->recursiveSanitize($val);
+			}
+		} else {
+			$var = strip_tags($var);
+		}
+		return $var;
 	}
 
 	/**
