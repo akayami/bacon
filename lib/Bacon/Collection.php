@@ -18,13 +18,13 @@ use Bacon\Database\Manager;
 abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 {
 
-	protected static $idField;
-	static $table;
-	static $cluster = 'default';
-	static $readonlyFields = array();
-	static $insertFields = false;
-	static $updateFields = false;
-	protected static $structure;
+// 	protected static $idField;
+// 	static $table;
+// 	static $cluster = 'default';
+// 	static $readonlyFields = array();
+// 	static $insertFields = false;
+// 	static $updateFields = false;
+// 	protected static $structure;
 	/**
 	 *
 	 * @var Cache
@@ -54,10 +54,12 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	{
 		if (is_array($data))
 		{
-			if (is_array(array_shift(array_values($data))))
+			$c = array_values($data);
+			if (is_array(array_shift($c)))
 			{ //checks if the first element is an array
 				$this->__myArray = $data; // Looks like dataset
-				$this->__current = array_shift(array_values($data)); // Setting this first entry as __current
+				$c = array_values($data);
+				$this->__current = array_shift($c); // Setting this first entry as __current
 			}
 			else
 			{
@@ -86,11 +88,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		if (!isset(static::$structure))
 		{
 			$tableName = static::$table;
-			
-			static::$structure = static::getCacheAdapter()->get('structure:' . static::$cluster . static::$table, function () use ($tableName)
-					{
-						return static::getCluster()->slave()->query('SHOW FULL columns FROM ' . $tableName)->fetchAllIndexedByCol('Field');
-					});
+			$cluster = static::getCluster();
+			static::$structure = static::getCacheAdapter()->get('structure:' . static::$cluster . static::$table, function () use ($cluster, $tableName)
+			{
+				return $cluster->slave()->query('SHOW FULL columns FROM ' . $tableName)->fetchAllIndexedByCol('Field');
+			});
 		}
 		return static::$structure;
 	}
@@ -216,7 +218,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	{
 		$q = 'SELECT ' . static::$table . '.* FROM ' . static::$table . ' ' . $extra;
 
-		return self::query($q, $phs, $conn, $cache);
+		return static::query($q, $phs, $conn, $cache);
 	}
 
 	public static function query($q, array $phs = null, Adapter $conn = null, Cache $cache = null)
@@ -276,9 +278,9 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		}
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 
-		if (self::$updateFields !== false)
+		if (static::$updateFields !== false)
 		{
-			$data = static::sanitize(array_intersect_key($data, array_flip(self::$updateFields)));
+			$data = static::sanitize(array_intersect_key($data, array_flip(static::$updateFields)));
 		}
 
 		$adapter->update(static::$table, $where, $data);
@@ -321,9 +323,9 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		}
 
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
-		if (self::$insertFields !== false)
+		if (static::$insertFields !== false)
 		{
-			$data = static::sanitize(array_intersect_key($data, self::$insertFields));
+			$data = static::sanitize(array_intersect_key($data, static::$insertFields));
 		}
 
 		$adapter->insert(static::$table, $data);
