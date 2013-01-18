@@ -249,10 +249,14 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 * @return \Bacon\Collection
 	 */
 
-	public static function byId($id, Adapter $adapter = null)
+	public static function byId($id, Adapter $conn = null, Cache $cache = null)
 	{
-		$adapter = (is_null($adapter) ? static::getCluster()->slave() : $adapter);
-		return new static($adapter->pquery('SELECT * FROM `' . static::$table . '` WHERE `' . static::getIDField() . '`={int:id}', array('id' => $id))->fetch());
+		return static::query(
+			'SELECT * FROM `' . static::$table . '` WHERE `' . static::getIDField() . '`={int:id}',
+			['id' => $id],
+			$conn,
+			$cache
+		);
 	}
 
 	/**
