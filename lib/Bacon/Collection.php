@@ -18,13 +18,6 @@ use Bacon\Database\Manager;
 abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 {
 
-// 	protected static $idField;
-// 	static $table;
-// 	static $cluster = 'default';
-// 	static $readonlyFields = array();
-// 	static $insertFields = false;
-// 	static $updateFields = false;
-// 	protected static $structure;
 	/**
 	 *
 	 * @var Cache
@@ -485,6 +478,25 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 			}
 		}
 		return $output;
+	}
+	
+	/**
+	 * Get safely a value for the current selected item
+	 * 
+	 * @param string $key
+	 * @param string $default
+	 * @return \Bacon\Collection|string
+	 */	
+	public function get($key, $default = false)
+	{
+		if (isset($this[$key]))
+		{
+			return $this[$key];
+		}
+		else
+		{
+			return $default;
+		}
 	}
 
 }
