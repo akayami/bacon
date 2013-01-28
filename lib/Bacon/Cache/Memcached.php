@@ -4,14 +4,14 @@ namespace Bacon\Cache;
 use Bacon\Cache;
 
 /**
- * 
+ *
  * @author t_rakowski
  *
  */
 class Memcached implements Cache {
-	
+
 	/**
-	 * 
+	 *
 	 * @var \Memcached
 	 */
 	protected $mc;
@@ -19,7 +19,7 @@ class Memcached implements Cache {
 	protected $realTTL = 120;
 	protected $refreshEnthropy = 10;
 	protected $useDynamicRefreshEntropy = true;
-	
+
 	public function __construct(\Memcached $memcached, $TTL = null, $realTTL = null, $refreshEnthropy = null, $useDynamicRefreshEntropy = true) {
 		$this->mc = $memcached;
 		if(is_int($TTL)) $this->TTL = $TTL;
@@ -27,15 +27,15 @@ class Memcached implements Cache {
 		if(is_int($refreshEnthropy)) $this->$refreshEnthropy = $refreshEnthropy;
 		$this->useDynamicRefreshEntropy = ($useDynamicRefreshEntropy ? true : false);
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::put()
 	 */
 	public function put($key, $value, $TTL = null, $realTTL = null) {
-		return $this->mc->set($key, array('p' => $value, 'ttl' => time() + $this->TTL), $this->realTTL);
+		return $this->mc->set($key, array('p' => $value, 'ttl' => time() + (is_null($TTL) ? $this->TTL : $TTL)), (is_null($realTTL) ? $this->realTTL : $realTTL));
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
@@ -59,8 +59,8 @@ class Memcached implements Cache {
 					$c = apc_fetch($lastKey, $ok);
 				}
 				$entr = ($ok ? round(($c * 0.05)) : $this->refreshEnthropy);
-				
-				if(mt_rand(0, $entr) == $entr) {			
+
+				if(mt_rand(0, $entr) == $entr) {
 					$result = $callback();
 					$this->put($key, $result);
 					return $result;
@@ -75,7 +75,7 @@ class Memcached implements Cache {
 			return $val['p'];
 		}
 	}
-	
+
 	/**
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::delete()
@@ -83,5 +83,5 @@ class Memcached implements Cache {
 	public function delete($key) {
 		return $this->mc->delete($key);
 	}
-	
+
 }
