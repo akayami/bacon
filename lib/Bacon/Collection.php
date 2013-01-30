@@ -243,13 +243,13 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 */
 
 	public static function byId($id, Adapter $conn = null, Cache $cache = null)
+	{		
+		return static::getBy(static::getIDField(), $id, $conn, $cache);
+	}
+	
+	public static function getBy($field, $value, Adapter $conn = null, Cache $cache = null)
 	{
-		return static::query(
-			'SELECT * FROM `' . static::$table . '` WHERE `' . static::getIDField() . '`={int:id}',
-			['id' => $id],
-			$conn,
-			$cache
-		);
+		return static::select('WHERE `' . $field . '` = {str:' . $field . '}', [$field => $value], $conn, $cache);
 	}
 
 	/**
@@ -497,6 +497,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		{
 			return $default;
 		}
+	}
+	
+	public function __get($name)
+	{
+		return $this->get($name, false);
 	}
 
 }
