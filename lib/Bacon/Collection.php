@@ -188,6 +188,14 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return Manager::singleton()->get(static::$cluster);
 	}
 
+	/**
+	 *
+	 * @param unknown $extra
+	 * @param array $phs
+	 * @param Adapter $adapter
+	 * @throws \Exception
+	 * @return self
+	 */
 	public static function load($extra, array $phs = null, Adapter $adapter = null)
 	{
 		$adapter = (is_null($adapter) ? static::getCluster()->slave() : $adapter);
@@ -204,7 +212,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 * @param array $phs
 	 * @param Adapter $conn
 	 * @param Cache $cache
-	 * @return multitype:|\Bacon\Collection
+	 * @return self
 	 */
 
 	public static function select($extra, array $phs = null, Adapter $conn = null, Cache $cache = null)
@@ -214,6 +222,14 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return static::query($q, $phs, $conn, $cache);
 	}
 
+	/**
+	 *
+	 * @param unknown $q
+	 * @param array $phs
+	 * @param Adapter $conn
+	 * @param Cache $cache
+	 * @return self
+	 */
 	public static function query($q, array $phs = null, Adapter $conn = null, Cache $cache = null)
 	{
 		if (is_null($conn))
@@ -239,14 +255,22 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	/**
 	 *
 	 * @param int $id
-	 * @return \Bacon\Collection
+	 * @return self
 	 */
 
 	public static function byId($id, Adapter $conn = null, Cache $cache = null)
-	{		
+	{
 		return static::getBy(static::getIDField(), $id, $conn, $cache);
 	}
-	
+
+	/**
+	 *
+	 * @param unknown $field
+	 * @param unknown $value
+	 * @param Adapter $conn
+	 * @param Cache $cache
+	 * @return self
+	 */
 	public static function getBy($field, $value, Adapter $conn = null, Cache $cache = null)
 	{
 		return static::select('WHERE `' . $field . '` = {str:' . $field . '}', [$field => $value], $conn, $cache);
@@ -479,14 +503,14 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		}
 		return $output;
 	}
-	
+
 	/**
 	 * Get safely a value for the current selected item
-	 * 
+	 *
 	 * @param string $key
 	 * @param string $default
 	 * @return \Bacon\Collection|string
-	 */	
+	 */
 	public function get($key, $default = false)
 	{
 		if (isset($this[$key]))
@@ -498,10 +522,24 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 			return $default;
 		}
 	}
-	
+
+	/**
+	 *
+	 * @param unknown $name
+	 * @return string
+	 */
 	public function __get($name)
 	{
 		return $this->get($name, false);
+	}
+
+	/**
+	 *
+	 * @param string $name
+	 * @param string $value
+	 */
+	public function __set($name, $value) {
+		$this[$name] = $value;
 	}
 
 }
