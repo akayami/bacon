@@ -45,7 +45,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 	public function __construct(array $data = null)
 	{
-		if (is_array($data))
+		if (is_array($data) && count($data) > 0)
 		{
 			$c = array_values($data);
 			if (is_array(array_shift($c)))
@@ -122,13 +122,34 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
 		if (isset($this[static::getIDField()]))
 		{
-			return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), array(static::getIDField() . '={int:id}', array('id' => $this->getId())));
+			return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
 		}
 		else
 		{
 			return self::insert(self::sanitize($this->getCurrent()));
 		}
 	}
+
+	public function del(Adapter $adapter = null) {
+		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
+		if (isset($this[static::getIDField()])) {
+			return self::delete(array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
+		} else {
+			throw new \Exception('Cannot delete, missing id');
+		}
+	}
+
+	public function saveInsert(Adapter $adapter = null) {
+		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
+		return self::insert(self::sanitize($this->getCurrent()));
+	}
+
+	public function saveUpdate(Adapter $adapter = null) {
+		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
+		return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
+	}
+
+
 
 	/**
 	 * Check for fields type
@@ -294,7 +315,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		//sstatic::getIDField().'={int:id}');
 		if (is_int($where))
 		{
-			$cond = static::getIDField() . '={int:id}';
+			$cond = static::getIDField() . '={str:id}';
 			$where = array($cond, array('id' => $where));
 		}
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
@@ -303,7 +324,6 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		{
 			$data = static::sanitize(array_intersect_key($data, array_flip(static::$updateFields)));
 		}
-
 		$adapter->update(static::$table, $where, $data);
 		return $adapter;
 	}
@@ -322,7 +342,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		}
 		if (is_int($where))
 		{
-			$cond = static::getIDField() . '={int:id}';
+			$cond = static::getIDField() . '={str:id}';
 			$where = array($cond, array('id' => $where));
 		}
 		$adapter->delete(static::$table, $where);
@@ -348,7 +368,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		{
 			$data = static::sanitize(array_intersect_key($data, static::$insertFields));
 		}
-
+		error_log(print_r($data, true));
 		$adapter->insert(static::$table, $data);
 		return $adapter;
 	}
