@@ -115,6 +115,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 * Saves item
 	 *
 	 * @param Adapter $conn
+	 * @return Adapter
 	 */
 
 	public function save(Adapter $adapter = null)
@@ -389,6 +390,22 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 			}
 		}
 		return $this;
+	}
+
+	public function toArray(array $columns = null) {
+		if(is_null($columns)) {
+			return $this->__myArray;
+		} else {
+			$output = [];
+ 			foreach($this as $index => $row) {
+ 				$row = [];
+ 				foreach($columns as $c) {
+					$row[$c] = $this[$c];
+ 				}
+ 				$output[$index] = $row;
+ 			}
+			return $output;
+		}
 	}
 
 	/**
