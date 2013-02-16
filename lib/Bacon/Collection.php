@@ -192,10 +192,10 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 				$newVal = $val;
 				break;
 			}
-			if ($newVal !== $val)
-			{
-				trigger_error('Collection sanitized value for key:' . $key);
-			}
+// 			if ($newVal !== $val)
+// 			{
+// 				trigger_error('Collection sanitized value for key:' . $key. ' - '.$val.'=>'.$newVal);
+// 			}
 		});
 		return $data;
 	}
@@ -369,7 +369,6 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		{
 			$data = static::sanitize(array_intersect_key($data, static::$insertFields));
 		}
-		error_log(print_r($data, true));
 		$adapter->insert(static::$table, $data);
 		return $adapter;
 	}
