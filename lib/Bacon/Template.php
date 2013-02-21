@@ -26,6 +26,26 @@ class Template extends ArrayObject {
 	}
 
 	/**
+	 * Fetch the value of a key or return default
+	 *
+	 * @param string $key
+	 * @param string $default
+	 * @throws Exception
+	 * @return multitype:|string
+	 */
+	public function get($key, $default = null) {
+		try {
+			return parent::offsetGet($key);
+		} catch(\Exception $e) {
+			if(!is_null($default)) {
+				return $default;
+			} else {
+				throw $e;
+			}
+		}
+	}
+
+	/**
 	 * Renders current view
 	 *
 	 * @throws \Exception
@@ -46,7 +66,7 @@ class Template extends ArrayObject {
 			$a = substr($a, 1);
 		}
 		if(!include($a)) {
-			throw new \Exception('Missing template:'.$a.'.phtml');
+			throw new \Exception('Missing template:'.$a);
 		}
 		$output = ob_get_contents();
 		ob_end_clean();
