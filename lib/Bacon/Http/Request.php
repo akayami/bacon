@@ -137,13 +137,20 @@ class Request extends ArrayObject {
 		}
 	}
 
+	/**
+	 *
+	 * @param mixed $var
+	 * @return string
+	 */
 	private function recursiveSanitize($var) {
 		if(is_array($var)) {
 			foreach($var as $key => $val) {
 				$var[$key] = $this->recursiveSanitize($val);
 			}
 		} else {
-			$var = strip_tags($var);
+			if(!is_object($var)) {
+				$var = strip_tags($var);
+			}
 		}
 		return $var;
 	}

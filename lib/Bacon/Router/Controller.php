@@ -44,14 +44,14 @@ class Controller {
 		foreach($this->routes as $routeBlock) {
 			foreach($routeBlock as /* @var $route Route */ $route) {
 				if($route->isValid($request)) {
-					try {
+//					try {
 						Request::getInstance()->setURI($route->getParams());	// Reading extracted parameters
 						$this->route = $route;
 						$this->handleRoute($this->route);
 						return true;
-					} catch(\Exception $e) {
-						throw new Exception('not.found', 'Requested resource was not found.', null, $e);
-					}
+// 					} catch(\Exception $e) {
+// 						throw new Exception('not.found', 'Requested resource was not found.', $e->getCode(), $e);
+// 					}
 				}
 			}
 		}
@@ -79,7 +79,7 @@ class Controller {
 	protected function loadController(Route $route) {
 		$cName = $route->getControllerClass();
 		if($route->validate() && !class_exists($cName, true)) {
-			throw new \Exception('Route resolved to an invalid controller: '.$cName);
+			throw new Exception('Route resolved to an invalid controller: '.$cName);
 		}
 		return new $cName($route->getAction());
 	}
