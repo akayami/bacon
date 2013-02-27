@@ -388,6 +388,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 				return $this;
 			}
 		}
+		$this->__current = [];
 		return $this;
 	}
 
