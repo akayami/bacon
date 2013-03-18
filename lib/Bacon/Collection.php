@@ -312,8 +312,6 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		{
 			$adapter = static::getCluster()->master();
 		}
-		//error_log(static::getIDField());exit;
-		//sstatic::getIDField().'={int:id}');
 		if (is_int($where))
 		{
 			$cond = static::getIDField() . '={str:id}';

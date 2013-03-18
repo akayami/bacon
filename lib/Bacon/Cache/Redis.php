@@ -75,7 +75,6 @@ class Redis implements Cache {
 	 * @see \Bacon\Cache::delete()
 	 */
 	public function delete($key) {
-		error_log('>>delete');
 		return $this->redisCluster->master()->delete($key);
 	}
 

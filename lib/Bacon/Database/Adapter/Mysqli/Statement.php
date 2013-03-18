@@ -42,7 +42,6 @@ class Statement implements \Bacon\Database\Statement {
 
 	private function mbind_param_do() {
         $params = array_merge(array($this->types), $this->params);
-        error_log(print_r($params, true));
         return call_user_func_array(array($this->stmt, 'bind_param'), $this->makeValuesReferenced($params));
     }
 
