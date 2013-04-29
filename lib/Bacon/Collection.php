@@ -260,7 +260,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		}
 		if (!is_null($cache))
 		{
-			ksort($phs);
+			if ($phs)
+			{
+				ksort($phs);
+			}
+			
 			$key = $q . serialize($phs);
 			$data = $cache->get($key, function () use ($conn, $q, $phs)
 					{
