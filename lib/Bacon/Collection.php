@@ -43,6 +43,9 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 * @param array $data
 	 */
 
+	const UPDATE = 'update';
+	const INSERT = 'insert';
+
 	public function __construct(array $data = null)
 	{
 		if (is_array($data) && count($data) > 0)
@@ -123,11 +126,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
 		if (isset($this[static::getIDField()]))
 		{
-			return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
+			return self::update(array_intersect_key($this->getCurrent(), array_flip($this->__dirty)), array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
 		}
 		else
 		{
-			return self::insert(self::sanitize($this->getCurrent()));
+			return self::insert($this->getCurrent());
 		}
 	}
 
@@ -175,7 +178,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 * @param array $data
 	 * @return array
 	 */
-	public static function sanitize($data)
+	public static function sanitize($data, $operation)
 	{
 		$structure = static::getStructure();
 		array_walk($data, function ($val, $key) use ($structure)
@@ -264,7 +267,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 			{
 				ksort($phs);
 			}
-			
+
 			$key = $q . serialize($phs);
 			$data = $cache->get($key, function () use ($conn, $q, $phs)
 					{
@@ -325,9 +328,9 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 		if (static::$updateFields !== false)
 		{
-			$data = static::sanitize(array_intersect_key($data, array_flip(static::$updateFields)));
+			$data = array_intersect_key($data, array_flip(static::$updateFields));
 		}
-		$adapter->update(static::$table, $where, $data);
+		$adapter->update(static::$table, $where, static::sanitize($data, self::UPDATE));
 		return $adapter;
 	}
 
@@ -369,9 +372,9 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 		if (static::$insertFields !== false)
 		{
-			$data = static::sanitize(array_intersect_key($data, static::$insertFields));
+			$data = array_intersect_key($data, static::$insertFields);
 		}
-		$adapter->insert(static::$table, $data);
+		$adapter->insert(static::$table, static::sanitize($data, self::INSERT));
 		return $adapter;
 	}
 
