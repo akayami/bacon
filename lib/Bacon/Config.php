@@ -21,20 +21,26 @@ class Config implements \ArrayAccess {
 	public function offsetSet($offset, $value) {
 		throw new \Exception('Cannot overwrite config data');
 	}
-	
+
+	/**
+	 *
+	 * @param string $offset
+	 * @param string $default
+	 * @throws \Exception
+	 * @return string
+	 */
 	public function get($offset, $default = null)
 	{
 		if ($this->offsetExists($offset))
 		{
 			return $this->offsetGet($offset);
 		}
-		
-		if ($default != null)
+		elseif ($default !== null)
 		{
 			return $default;
 		}
-		
-		throw new \Exception('Must provide a valid default value');		
+
+		throw new \Exception('Requested key does not exist, not-null default not provided');
 	}
 
 
