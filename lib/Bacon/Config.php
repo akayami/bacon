@@ -21,6 +21,16 @@ class Config implements \ArrayAccess {
 	public function offsetSet($offset, $value) {
 		throw new \Exception('Cannot overwrite config data');
 	}
+	
+	public function get($offset, $default = false)
+	{
+		if (isset(static::$config[$offset]))
+		{
+			return static::$config[$offset];
+		}
+		
+		return $default;
+	}
 
 
 	/**
