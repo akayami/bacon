@@ -551,18 +551,20 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 *
 	 * @param string $key
 	 * @param string $default
-	 * @return \Bacon\Collection|string
+	 * @return string
+	 * @throws \Exception
 	 */
-	public function get($key, $default = false)
+	public function get($key, $default = null)
 	{
 		if (isset($this[$key]))
 		{
 			return $this[$key];
 		}
-		else
+		elseif($default !== null)
 		{
 			return $default;
 		}
+		throw new \Exception('Requested key does not exist, default not provided');
 	}
 
 	/**
