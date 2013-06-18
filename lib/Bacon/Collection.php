@@ -38,11 +38,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 */
 	protected $__myArray = array();
 
-	/**
-	 *
-	 * @param array $data
-	 */
-
+	
 	const UPDATE = 'update';
 	const INSERT = 'insert';
 
@@ -93,6 +89,31 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return static::$structure;
 	}
 
+	
+	/**
+	 * Returns the list of field ids
+	 * 
+	 * @param string $bypassAutoIncrement
+	 */
+	public static function getIdFields($bypassAutoIncrement = false) {
+		if(!isset(static::$idFields[(int)$bypassAutoIncrement])) {
+			static::$idFields[(int)$bypassAutoIncrement] = [];
+			$structure = static::getStructure();
+			foreach($structure as $fieldname => $field) {
+				if ($field['Key'] === 'PRI') {
+					if($bypassAutoIncrement == false || !in_array('auto_increment', explode(',',$field['Extra']))) {
+						static::$idFields[(int)$bypassAutoIncrement][] = $field['Field'];
+					}
+				}
+			}
+		}
+		return static::$idFields[(int)$bypassAutoIncrement];
+	}
+	
+	/**
+	 * 
+	 * @deprecated
+	 */	
 	public static function getIDField()
 	{
 		if (!is_null(static::$idField))
@@ -109,9 +130,55 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return static::$idField;
 	}
 
+	/**
+	 * Returns an array containing keys
+	 * 
+	 * @param string $assoc
+	 * @return array
+	 */
+	public function getIds($assoc = true) {
+		$a = $this::getIDFields();
+		$output = [];
+		foreach($a as $index => $field) {
+			if($assoc) {
+				$output[$field] = $this[$field];
+			} else {
+				$output[$index] = $this[$field];
+			}
+		}
+		return $output;
+	}
+	
+	/**
+	 * Return current id
+	 * 
+	 * @return mixed
+	 * @deprecated
+	 */
 	public function getId()
 	{
-		return $this[$this::getIDField()];
+		$id = $this::getIDFields();
+		if(count($id) > 1) {
+			throw new \Exception('getId function does not support compunded primary keys');
+		}
+		return $this[$id[0]];
+	}
+	
+	protected function getPKWhere() {
+		$ids = $this->getIds();
+		$output = [];
+		foreach($ids as $id => $value) {
+			$output[] = $id.'={str:'.$id.'}';
+		}
+		return $output;
+	}
+	
+	protected function getPKWhereString() {		
+		return implode(' AND ', $this->getPKWhere());
+	}
+	
+	protected function getPKCombo() {
+		return array($this->getPKWhereString(), $this->getIds());
 	}
 
 	/**
@@ -126,7 +193,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
 		if (isset($this[static::getIDField()]))
 		{
-			return self::update(array_intersect_key($this->getCurrent(), array_flip($this->__dirty)), array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
+			return self::update(array_intersect_key($this->getCurrent(), array_flip($this->__dirty)), $this->getPKCombo());
 		}
 		else
 		{
@@ -137,7 +204,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	public function del(Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
 		if (isset($this[static::getIDField()])) {
-			return self::delete(array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
+			return self::delete($this->getPKCombo());
 		} else {
 			throw new \Exception('Cannot delete, missing id');
 		}
@@ -150,7 +217,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 	public function saveUpdate(Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
-		return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), array(static::getIDField() . '={str:id}', array('id' => $this->getId())));
+		return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), $this->getPKCombo());
 	}
 
 
@@ -305,6 +372,15 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return static::select('WHERE `' . $field . '` = {str:' . $field . '}', [$field => $value], $conn, $cache);
 	}
 
+	protected static function shortHandWhere($where) {
+		$idFields = static::getIdFields();
+		if(count($idFields) > 1) {
+			throw new \Exception('Cannot use shorthand where on tables with composite PK');
+		}
+		$cond = $idFields[0] . '={str:id}';
+		return array($cond, array('id' => $where));
+	}
+	
 	/**
 	 *
 	 * @param array $data
@@ -320,9 +396,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 			$adapter = static::getCluster()->master();
 		}
 		if (is_int($where))
-		{
-			$cond = static::getIDField() . '={str:id}';
-			$where = array($cond, array('id' => $where));
+		{			
+			$where = static::shortHandWhere($where);
 		}
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 
@@ -348,8 +423,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		}
 		if (is_int($where))
 		{
-			$cond = static::getIDField() . '={str:id}';
-			$where = array($cond, array('id' => $where));
+			$where = static::shortHandWhere($where);
 		}
 		$adapter->delete(static::$table, $where);
 		return $adapter;
@@ -380,7 +454,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 	protected static function getStandardFilteredFields()
 	{
-		return array_merge(array(static::getIDField()), static::$readonlyFields);
+		return array_merge(static::getIDFields(true), static::$readonlyFields);
 	}
 
 	public function seek($index)
