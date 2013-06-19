@@ -14,7 +14,7 @@ abstract class Abstr implements Adapter {
 	 * @see Bacon\Database.Adapter::pquery_sql()
 	 */
 	public function pquery_sql($query, array $phs = null) {
-		for ($pos = 0; preg_match('/\{(str|int|dec|raw):(\w++)\}/', $query, $match, PREG_OFFSET_CAPTURE, $pos);) {
+		for ($pos = 0; preg_match('/\{(str|int|dec|raw|name):(\w++)\}/', $query, $match, PREG_OFFSET_CAPTURE, $pos);) {
 			$ph_pos = $match[0][1];
 			$ph_len = strlen($match[0][0]);
 			$ph_type = $match[1][0];
@@ -54,7 +54,9 @@ abstract class Abstr implements Adapter {
 
 						$ph_vals[] = (float)$ph_val;
 						break;
-
+					case 'name':
+						$ph_vals[] = $this->quoteIdentifier($ph_val);
+						break;
 					case 'raw':
 						$ph_vals[] = $ph_val;
 						break;

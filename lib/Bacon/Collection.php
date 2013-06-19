@@ -89,27 +89,25 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return static::$structure;
 	}
 
-	
 	/**
-	 * Returns the list of field ids
 	 * 
-	 * @param string $bypassAutoIncrement
+	 * @param string $onlyAutoIncrement
 	 */
-	public static function getIdFields($bypassAutoIncrement = false) {
-		if(!isset(static::$idFields[(int)$bypassAutoIncrement])) {
-			static::$idFields[(int)$bypassAutoIncrement] = [];
+	public static function getIdFields($onlyAutoIncrement = false) {
+		if(!isset(static::$idFields[(int)$onlyAutoIncrement])) {
+			static::$idFields[(int)$onlyAutoIncrement] = [];
 			$structure = static::getStructure();
 			foreach($structure as $fieldname => $field) {
 				if ($field['Key'] === 'PRI') {
-					if($bypassAutoIncrement == false || !in_array('auto_increment', explode(',',$field['Extra']))) {
-						static::$idFields[(int)$bypassAutoIncrement][] = $field['Field'];
+					if($onlyAutoIncrement == false || in_array('auto_increment', explode(',',$field['Extra']))) {
+						static::$idFields[(int)$onlyAutoIncrement][] = $field['Field'];
 					}
 				}
 			}
 		}
-		return static::$idFields[(int)$bypassAutoIncrement];
-	}
-	
+		return static::$idFields[(int)$onlyAutoIncrement];
+	}	
+		
 	/**
 	 * 
 	 * @deprecated
@@ -212,12 +210,12 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 	public function saveInsert(Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
-		return self::insert(self::sanitize($this->getCurrent()));
+		return self::insert($this->getCurrent());
 	}
 
 	public function saveUpdate(Adapter $adapter = null) {
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
-		return self::update(self::sanitize(array_intersect_key($this->getCurrent(), array_flip($this->__dirty))), $this->getPKCombo());
+		return self::update(array_intersect_key($this->getCurrent(), array_flip($this->__dirty)), $this->getPKCombo());
 	}
 
 
@@ -348,10 +346,33 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		return new static($data);
 	}
 
+	protected static function parseIds(array $ids) {
+		$output = [];
+		$keys = [];	
+		foreach($ids as $i => $k) {
+			$keys['name_'.$i] = $i;
+			$output[] = '{name:name_'.$i.'} = {str:'.$i.'}';
+		}
+		return [$output, $keys];
+	}
+	
+	/**
+	 * 
+	 * @param array $ids
+	 * @param Adapter $conn
+	 * @param Cache $cache
+	 */
+	public static function byIds(array $ids, Adapter $conn = null, Cache $cache = null) {
+		list($parts, $keyMap) = static::parseIds($ids);
+		return static::select(' WHERE '.implode(' AND ', $parts), array_merge($keyMap, $ids), $conn, $cache);		
+	}
+	
+	
 	/**
 	 *
 	 * @param int $id
 	 * @return self
+	 * @deprecated
 	 */
 
 	public static function byId($id, Adapter $conn = null, Cache $cache = null)
@@ -442,7 +463,6 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		{
 			$adapter = static::getCluster()->master();
 		}
-
 		$data = array_diff_key($data, array_flip(self::getStandardFilteredFields()));
 		if (static::$insertFields !== false)
 		{
