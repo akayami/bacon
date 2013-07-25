@@ -27,7 +27,7 @@ class APC extends Base {
 	 * @see \Bacon\Cache::put()
 	 */
 	public function put($key, $value, $TTL = null, $realTTL = null) {
-		return apc_store($key, array('p' => $value, 'ttl' => time() + $this->getTTL($TTL)), $this->getRealTTL($TTL, $realTTL));
+		return apc_store($this->keyHash($key), array('p' => $value, 'ttl' => time() + $this->getTTL($TTL)), $this->getRealTTL($TTL, $realTTL));
 	}
 
 	/**
@@ -37,7 +37,7 @@ class APC extends Base {
 	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
 		$key = md5($key);
 		$r = false;
-		$val = apc_fetch($key, $r);
+		$val = apc_fetch($this->keyHash($key), $r);
 		if(!$r) {
 			$result = $callback();
 			$this->put($key, $result, $TTL, $realTTL);
@@ -75,6 +75,6 @@ class APC extends Base {
 	 * @see \Bacon\Cache::delete()
 	 */
 	public function delete($key) {
-		return apc_delete($key);
+		return apc_delete($this->keyHash($key));
 	}
 }

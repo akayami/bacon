@@ -15,7 +15,7 @@ abstract class Base implements Cache {
 	 * @param string $realTTL
 	 * @return Ambigous <string, number>
 	 */
-	public function getRealTTL($TTL = null, $realTTL = null) {
+	protected function getRealTTL($TTL = null, $realTTL = null) {
 		return 
 		(is_null($realTTL)
 			? (!is_null($TTL) ? 2 * $TTL : $this->realTTL) // IF realTTL is not provided and TTL is, realTTL is auto-calculated as half the TTL time
@@ -28,7 +28,11 @@ abstract class Base implements Cache {
 	 * @param string $TTL
 	 * @return Ambigous <unknown, number>
 	 */
-	public function getTTL($TTL = null) {
+	protected function getTTL($TTL = null) {
 		return (is_null($TTL) ? $this->TTL : $TTL);
+	}
+	
+	protected function keyHash($key) {
+		return md5($key);
 	}
 }

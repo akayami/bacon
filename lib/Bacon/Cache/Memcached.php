@@ -33,7 +33,7 @@ class Memcached extends Base {
 	 * @see \Bacon\Cache::put()
 	 */
 	public function put($key, $value, $TTL = null, $realTTL = null) {
-		return $this->mc->set($key, array('p' => $value, 'ttl' => time() + $this->getTTL($TTL)), $this->getRealTTL($TTL, $realTTL));
+		return $this->mc->set($this->keyHash($key), array('p' => $value, 'ttl' => time() + $this->getTTL($TTL)), $this->getRealTTL($TTL, $realTTL));
 	}
 
 	/**
@@ -41,8 +41,7 @@ class Memcached extends Base {
 	 * @see \Bacon\Cache::get()
 	 */
 	public function get($key, $callback, $TTL = null, $realTTL = null) {
-		$key = md5($key);
-		if(!($val = $this->mc->get($key))) {
+		if(!($val = $this->mc->get($this->keyHash($key)))) {
 			if($this->mc->getResultCode() == \Memcached::RES_NOTFOUND) {
 				$result = $callback();
 				$this->put($key, $result, $TTL, $realTTL);
@@ -81,7 +80,7 @@ class Memcached extends Base {
 	 * @see \Bacon\Cache::delete()
 	 */
 	public function delete($key) {
-		return $this->mc->delete($key);
+		return $this->mc->delete($this->keyHash($key));
 	}
 
 }

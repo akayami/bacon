@@ -28,7 +28,7 @@ class Redis extends Base {
 	 */
 	public function put($key, $value, $TTL = null, $realTTL = null) {				
 		return $this->redisCluster->master()->setex(
-				$key,
+				$this->keyHash($key),
 				$this->getRealTTL($TTL, $realTTL), 
 				serialize(array('p' => $value, 'ttl' => time() +  $this->getTTL($TTL)))
 		);
@@ -39,8 +39,7 @@ class Redis extends Base {
 	 * @see \Bacon\Cache::get()
 	 */
 	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
-		$key = md5($key);
-		if($val = $this->redisCluster->slave()->get($key)) {
+		if($val = $this->redisCluster->slave()->get($this->keyHash($key))) {
 			$val = unserialize($val);
 			if(isset($val['p']) && isset($val['ttl'])) {
 				if($val['ttl'] < time()) {
@@ -77,7 +76,6 @@ class Redis extends Base {
 	 * @see \Bacon\Cache::delete()
 	 */
 	public function delete($key) {
-		return $this->redisCluster->master()->delete($key);
+		return $this->redisCluster->master()->delete($this->keyHash($key));
 	}
-
 }
