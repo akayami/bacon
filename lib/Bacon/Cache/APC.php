@@ -8,10 +8,10 @@ use Bacon\Cache;
  * @author t_rakowski
  *
  */
-class APC implements Cache {
+class APC extends Base {
 
 	protected $TTL = 60;					// Amount of time the data will be considered stale
-	protected $realTTL = 120;				// Total amount of time the will remain in cahce
+	protected $realTTL = 120;				// Total amount of time the will remain in cache
 	protected $refreshEnthropy = 10;		// Default refresh frequency
 	protected $useDynamicRefreshEntropy = true;
 
@@ -27,20 +27,20 @@ class APC implements Cache {
 	 * @see \Bacon\Cache::put()
 	 */
 	public function put($key, $value, $TTL = null, $realTTL = null) {
-		return apc_store($key, array('p' => $value, 'ttl' => time() + $this->TTL), $this->realTTL);
+		return apc_store($key, array('p' => $value, 'ttl' => time() + $this->getTTL($TTL)), $this->getRealTTL($TTL, $realTTL));
 	}
 
 	/**
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
 	 */
-	public function get($key, $callback) {
+	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
 		$key = md5($key);
 		$r = false;
 		$val = apc_fetch($key, $r);
 		if(!$r) {
 			$result = $callback();
-			$this->put($key, $result);
+			$this->put($key, $result, $TTL, $realTTL);
 			return $result;
 		} else {
 			if($val['ttl'] < time()) {
@@ -54,7 +54,7 @@ class APC implements Cache {
 
 				if(mt_rand(0, $entr) == $entr) {
 					$result = $callback();
-					$this->put($key, $result);
+					$this->put($key, $result, $TTL, $realTTL);
 					return $result;
 				}
 			}

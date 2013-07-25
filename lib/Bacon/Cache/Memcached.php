@@ -8,7 +8,7 @@ use Bacon\Cache;
  * @author t_rakowski
  *
  */
-class Memcached implements Cache {
+class Memcached extends Base {
 
 	/**
 	 *
@@ -33,19 +33,19 @@ class Memcached implements Cache {
 	 * @see \Bacon\Cache::put()
 	 */
 	public function put($key, $value, $TTL = null, $realTTL = null) {
-		return $this->mc->set($key, array('p' => $value, 'ttl' => time() + (is_null($TTL) ? $this->TTL : $TTL)), (is_null($realTTL) ? $this->realTTL : $realTTL));
+		return $this->mc->set($key, array('p' => $value, 'ttl' => time() + $this->getTTL($TTL)), $this->getRealTTL($TTL, $realTTL));
 	}
 
 	/**
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
 	 */
-	public function get($key, $callback) {
+	public function get($key, $callback, $TTL = null, $realTTL = null) {
 		$key = md5($key);
 		if(!($val = $this->mc->get($key))) {
 			if($this->mc->getResultCode() == \Memcached::RES_NOTFOUND) {
 				$result = $callback();
-				$this->put($key, $result);
+				$this->put($key, $result, $TTL, $realTTL);
 				return $result;
 			} else {
 				throw new \Exception('Unhandled cache condition');
@@ -62,7 +62,7 @@ class Memcached implements Cache {
 
 				if(mt_rand(0, $entr) == $entr) {
 					$result = $callback();
-					$this->put($key, $result);
+					$this->put($key, $result, $TTL, $realTTL);
 					return $result;
 				}
 			}
