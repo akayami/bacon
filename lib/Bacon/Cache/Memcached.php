@@ -40,7 +40,7 @@ class Memcached extends Base {
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
 	 */
-	public function get($key, $callback, $TTL = null, $realTTL = null) {
+	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
 		if(!($val = $this->mc->get($this->keyHash($key)))) {
 			if($this->mc->getResultCode() == \Memcached::RES_NOTFOUND) {
 				$result = $callback();

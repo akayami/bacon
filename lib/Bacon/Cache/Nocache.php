@@ -9,7 +9,7 @@ class Nocache extends Base {
 		return true;
 	}
 
-	public function get($key, $callback, $TTL = null, $realTTL = null) {
+	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
 		return $callback();
 	}
 
