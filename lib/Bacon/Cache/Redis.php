@@ -41,7 +41,7 @@ class Redis extends Base {
 	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
 		if($val = $this->redisCluster->slave()->get($this->keyHash($key))) {
 			$val = unserialize($val);
-			if(isset($val['p']) && isset($val['ttl'])) {
+			if(isset($val['ttl']) && array_key_exists('p', $val)) {				
 				if($val['ttl'] < time()) {
 					$ok = false;
 					$c = 0;
