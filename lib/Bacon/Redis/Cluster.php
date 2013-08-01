@@ -86,7 +86,10 @@ class Cluster {
 	 */
 	private function getRedis($config) {
 		$a = new \Redis();
-		(strlen($config['socket']) == 0) ? ($config['persistent'] ? $a->pconnect($config['hostname'], $config['port'], $config['timeout']) : $a->connect($config['hostname'], $config['port'], $config['timeout'])) : $a->connect($config['socket']);
+		$output = (strlen($config['socket']) == 0) ? ($config['persistent'] ? $a->pconnect($config['hostname'], $config['port'], $config['timeout']) : $a->connect($config['hostname'], $config['port'], $config['timeout'])) : $a->connect($config['socket']);
+		if(!$output) {
+			throw new \Exception('Failed to connect to redis');
+		}
 		return $a;
 	}
 
