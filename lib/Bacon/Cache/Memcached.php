@@ -40,17 +40,21 @@ class Memcached extends Base {
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
 	 */
-	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
+	public function get($key, callable $callback = null, $TTL = null, $realTTL = null) {
 		if(!($val = $this->mc->get($this->keyHash($key)))) {
 			if($this->mc->getResultCode() == \Memcached::RES_NOTFOUND) {
-				$result = $callback();
-				$this->put($key, $result, $TTL, $realTTL);
-				return $result;
+				if(isset($callback)) {
+					$result = $callback();
+					$this->put($key, $result, $TTL, $realTTL);
+					return $result;
+				} else {
+					return null;
+				}
 			} else {
 				throw new \Exception('Unhandled cache condition');
 			}
 		} else {
-			if($val['ttl'] < time()) {
+			if($val['ttl'] < time() && isset($callback)) {
 				$ok = false;
 				$c = 0;
 				if($this->useDynamicRefreshEntropy) {
@@ -71,7 +75,7 @@ class Memcached extends Base {
 					$v = apc_inc($key_cnt);
 				}
 			}
-			return $val['p'];
+			return (isset($val['p']) ? $val['p'] : null);
 		}
 	}
 

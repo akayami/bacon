@@ -19,7 +19,7 @@ interface Cache {
 	 * @param int $TTL
 	 * @param int $realTTL
 	 */
-	public function get($key, callable $callback, $TTL = null, $realTTL = null);
+	public function get($key, callable $callback = null, $TTL = null, $realTTL = null);
 
 	/**
 	 * 

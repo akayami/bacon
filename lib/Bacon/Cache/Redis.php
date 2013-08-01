@@ -38,8 +38,8 @@ class Redis extends Base {
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
 	 */
-	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
-		if($val = $this->redisCluster->slave()->get($this->keyHash($key))) {
+	public function get($key, callable $callback = null, $TTL = null, $realTTL = null) {
+		if($val = $this->redisCluster->slave()->get($this->keyHash($key))) {			
 			$val = unserialize($val);
 			if(isset($val['ttl']) && array_key_exists('p', $val)) {				
 				if($val['ttl'] < time()) {
@@ -50,7 +50,6 @@ class Redis extends Base {
 						$c = apc_fetch($lastKey, $ok);
 					}
 					$entr = ($ok ? round(($c * 0.05)) : $this->refreshEnthropy);
-
 					if(mt_rand(0, $entr) == $entr) {
 						$result = $callback();
 						$this->put($key, $result, $TTL, $realTTL);
@@ -66,9 +65,13 @@ class Redis extends Base {
 				return $val['p'];
 			}
 		}
-		$result = $callback();
-		$this->put($key, $result, $TTL, $realTTL);
-		return $result;
+		if(isset($callback)) {
+			$result = $callback();
+			$this->put($key, $result, $TTL, $realTTL);
+			return $result;
+		} else {
+			return null;
+		}
 	}
 
 	/**

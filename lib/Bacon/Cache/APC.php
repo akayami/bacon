@@ -34,16 +34,20 @@ class APC extends Base {
 	 * (non-PHPdoc)
 	 * @see \Bacon\Cache::get()
 	 */
-	public function get($key, callable $callback, $TTL = null, $realTTL = null) {
+	public function get($key, callable $callback = null, $TTL = null, $realTTL = null) {
 		$key = md5($key);
 		$r = false;
 		$val = apc_fetch($this->keyHash($key), $r);
 		if(!$r) {
-			$result = $callback();
-			$this->put($key, $result, $TTL, $realTTL);
-			return $result;
+			if(isset($callback)) {
+				$result = $callback();
+				$this->put($key, $result, $TTL, $realTTL);
+				return $result;
+			} else {
+				return null;
+			}
 		} else {
-			if($val['ttl'] < time()) {
+			if(isset($val['ttl']) && $val['ttl'] < time() && isset($callback)) {
 				$ok = false;
 				$c = 0;
 				if($this->useDynamicRefreshEntropy) {
@@ -66,7 +70,7 @@ class APC extends Base {
 				}
 			}
 
-			return $val['p'];
+			return (isset($val['p']) ? $val['p'] : null);
 		}
 	}
 
