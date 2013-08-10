@@ -110,22 +110,15 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		
 	/**
 	 * 
-	 * @deprecated
+	 * 
 	 */	
 	public static function getIDField()
 	{
-		if (!is_null(static::$idField))
-		{
-			$structure = static::getStructure();
-			foreach ($structure as $fieldname => $field)
-			{
-				if ($field['Key'] === 'PRI')
-				{
-					static::$idField = $field['Field'];
-				}
-			}
+		$fields = static::getIdFields();
+		if(count($fields) > 1) {
+			throw new \Exception('This collection contains composite PK. Use getIDFields instead');
 		}
-		return static::$idField;
+		return $fields[0];		
 	}
 
 	/**
@@ -305,7 +298,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	 * @return self
 	 */
 
-	public static function select($extra, array $phs = null, Adapter $conn = null, Cache $cache = null)
+	public static function select($extra = '', array $phs = null, Adapter $conn = null, Cache $cache = null)
 	{
 		$q = 'SELECT ' . static::$table . '.* FROM ' . static::$table . ' ' . $extra;
 
@@ -556,6 +549,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 	public function offsetUnset($offset)
 	{
 		unset($this->__current[$offset]);
+	}
+	
+	public function mergeFileds(array $values) {
+		$this->__current = array_merge($this->__current, $values);
+		$this->__dirty = array_merge($this->__dirty, array_keys($values));
 	}
 
 	/**

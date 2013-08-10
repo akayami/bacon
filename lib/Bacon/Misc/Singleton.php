@@ -10,6 +10,9 @@ Trait Singleton {
 
 	protected static $_instance;
 
+	/**
+	 * @return self
+	 */
 	public static function getInstance() {
 		if(!isset(static::$_instance)) {
 			static::$_instance = static::_instance();

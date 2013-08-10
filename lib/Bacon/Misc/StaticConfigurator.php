@@ -10,6 +10,6 @@ Trait StaticConfigurator {
 	}
 
 	public function getConfig() {
-		return $this::$_config;
+		return static::$_config;
 	}
 }
