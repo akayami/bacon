@@ -22,6 +22,10 @@ class Config implements \ArrayAccess {
 		throw new \Exception('Cannot overwrite config data');
 	}
 
+	public function has($offset) {
+		return $this->offsetExists($offset);
+	} 
+	
 	/**
 	 *
 	 * @param string $offset
