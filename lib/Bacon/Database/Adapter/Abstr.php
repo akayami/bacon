@@ -8,7 +8,6 @@ use Bacon\Database\Adapter;
 abstract class Abstr implements Adapter {
 
 	protected $__type;
-
 	/**
 	 * (non-PHPdoc)
 	 * @see Bacon\Database.Adapter::pquery_sql()
@@ -70,14 +69,11 @@ abstract class Abstr implements Adapter {
 	}
 
 	/**
-	 *
-	 * Enter description here ...
-	 * @param string $query
-	 * @param array $phs
-	 * @return Result
+	 * (non-PHPdoc)
+	 * @see \Bacon\Database\Adapter::pquery()
 	 */
-	public function pquery($query, array $phs = null) {
-		return $this->query($this->pquery_sql($query, $phs));
+	public function pquery($query, array $phs = null, $buffered = true) {
+		return $this->query($this->pquery_sql($query, $phs), $buffered);
 	}
 
 	//	abstract public function quote($string);

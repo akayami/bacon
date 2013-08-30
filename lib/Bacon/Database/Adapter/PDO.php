@@ -17,7 +17,8 @@ class PDO extends Abstr {
 		$this->handle = new \PDO($this->makeDSN($config), $config['username'], $config['password']);
 	}
 	
-	public function query($query) {
+	public function query($query, $buffered = true) {
+		$this->handle->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, $buffered);
 		$this->lastResult = new Result($this->handle->query($query));
 		return $this->lastResult;
 	}

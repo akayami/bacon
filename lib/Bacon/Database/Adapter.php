@@ -25,21 +25,21 @@ interface Adapter {
 	public function pquery_sql($query, array $phs = null);
 
 	/**
-	 * Executes a regular query
-	 *
-	 * @param $query
+	 * 
+	 * @param string $query
+	 * @param boolean $buffered
 	 * @return Result
 	 */
-	public function query($query);
+	public function query($query, $buffered = true);
 
 	/**
-	 *
-	 * Enter description here ...
-	 * @param string $query
+	 * 
+	 * @param unknown $query
 	 * @param array $phs
+	 * @param boolean $buffered
 	 * @return Result
 	 */
-	public function pquery($query, array $phs = null);
+	public function pquery($query, array $phs = null, $buffered = true);
 
 
 	/**

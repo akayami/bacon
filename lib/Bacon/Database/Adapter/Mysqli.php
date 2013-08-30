@@ -54,12 +54,11 @@ class Mysqli extends Abstr {
 	}
 
 	/**
-	 *
-	 * @param string $query
-	 * @return Result
+	 * (non-PHPdoc)
+	 * @see \Bacon\Database\Adapter::query()
 	 */
-	public function query($query) {
-		$res = $this->handle->query($query);
+	public function query($query, $buffered = true) {
+		$res = $this->handle->query($query ,($buffered ? MYSQLI_STORE_RESULT : MYSQLI_USE_RESULT));
 		if(is_bool($res)) {
 			if($res === false) {
 				switch($this->handle->errno) {
