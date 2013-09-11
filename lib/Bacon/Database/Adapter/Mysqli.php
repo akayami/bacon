@@ -103,11 +103,7 @@ class Mysqli extends Abstr {
 	 * @see Bacon\Database.Adapter::quote()
 	 */
 	public function quote($string, $escape = true) {
-		if($escape) {
-			return "'".$this->escape($string)."'";
-		} else {
-			return "'".$string."'";
-		}
+		return "'" . ($escape ? $this->escape($string) : $string) . "'";
 	}
 
 	/**
