@@ -184,11 +184,11 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 		$adapter = (is_null($adapter) ? static::getCluster()->master() : $adapter);
 		if (isset($this[static::getIDField()]))
 		{
-			return self::update(array_intersect_key($this->getCurrent(), array_flip($this->__dirty)), $this->getPKCombo());
+			return static::update(array_intersect_key($this->getCurrent(), array_flip($this->__dirty)), $this->getPKCombo());
 		}
 		else
 		{
-			return self::insert($this->getCurrent());
+			return static::insert($this->getCurrent());
 		}
 	}
 
@@ -307,7 +307,7 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 	/**
 	 *
-	 * @param unknown $q
+	 * @param string $q
 	 * @param array $phs
 	 * @param Adapter $conn
 	 * @param Cache $cache
@@ -375,8 +375,8 @@ abstract class Collection implements \ArrayAccess, \Iterator, \Countable
 
 	/**
 	 *
-	 * @param unknown $field
-	 * @param unknown $value
+	 * @param string $field
+	 * @param string $value
 	 * @param Adapter $conn
 	 * @param Cache $cache
 	 * @return self
