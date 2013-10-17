@@ -8,7 +8,7 @@ class Absolute {
 	public function __construct($base = '') {
 		$parsed = parse_url($base);
 		unset($parsed['query']);
-		$this->base = http_build_query($parsed);
+		$this->base = http_build_url($parsed);
 	}
 	
 	public function rewrite($url) {
