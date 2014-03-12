@@ -1,0 +1,23 @@
+{
+    "name": "akayami/bacon",
+    "description": "A small php framework",
+    "authors": [
+        {
+            "name": "Tomasz",
+            "email": "akayami@gmail.com"
+        }
+    ],
+    "require": {
+
+    },
+
+    "require-dev": {
+        "phpunit/phpunit": "~3.7.10"
+    },
+
+    "autoload": {
+        "psr-0": {
+            "Bacon\\": "lib"
+        }
+    }
+}
