@@ -149,7 +149,7 @@ class Request extends ArrayObject {
 			}
 		} else {
 			if(!is_object($var)) {
-				$var = strip_tags($var);
+				$var = strip_tags(trim($var));
 			}
 		}
 		return $var;
